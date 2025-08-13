@@ -109,6 +109,91 @@ def get_wikipedia_summary(query: str, lang: str = "id"):
     return None
 
 
+# Sumber lain: DuckDuckGo Instant Answer API
+# Dokumentasi: https://api.duckduckgo.com/api
+# Tidak butuh API key
+
+def get_duckduckgo_instant_answer(query: str, lang: str = "id"):
+    try:
+        params = urllib.parse.urlencode({
+            "q": query,
+            "format": "json",
+            "no_html": "1",
+            "skip_disambig": "1",
+            "no_redirect": "1",
+            "t": "YayatBot",
+            "kl": "id-id",
+        })
+        url = f"https://api.duckduckgo.com/?{params}"
+        data = _http_get_json(url)
+        if not data:
+            return None
+        abstract = (data.get("AbstractText") or "").strip()
+        heading = (data.get("Heading") or query).strip()
+        abstract_url = (data.get("AbstractURL") or "").strip()
+        if abstract:
+            return {
+                "title": heading or query,
+                "extract": abstract,
+                "url": abstract_url or None,
+                "lang": lang,
+                "source": "DuckDuckGo IA",
+            }
+        # Fallback: RelatedTopics
+        related = data.get("RelatedTopics") or []
+        # RelatedTopics bisa berupa item langsung atau grup dengan key "Topics"
+        def _pick_from_related(items):
+            for it in items:
+                if isinstance(it, dict) and it.get("Text") and it.get("FirstURL"):
+                    text_val = (it.get("Text") or "").strip()
+                    if text_val:
+                        return {
+                            "title": text_val.split(" - ", 1)[0],
+                            "extract": text_val,
+                            "url": it.get("FirstURL"),
+                            "lang": lang,
+                            "source": "DuckDuckGo Related",
+                        }
+            return None
+        # Cek level atas
+        picked = _pick_from_related(related)
+        if picked:
+            return picked
+        # Cek nested grup
+        for it in related:
+            topics = it.get("Topics") if isinstance(it, dict) else None
+            if topics:
+                picked = _pick_from_related(topics)
+                if picked:
+                    return picked
+        return None
+    except Exception:
+        return None
+
+
+def get_knowledge_from_multiple_sources(query: str, lang: str = "id"):
+    """
+    Coba ambil ringkasan dari beberapa sumber (Wikipedia, DuckDuckGo IA).
+    Mengembalikan dict minimal: {text, sources, primary, wiki, ddg} atau None.
+    """
+    wiki = get_wikipedia_summary(query, lang=lang)
+    ddg = get_duckduckgo_instant_answer(query, lang=lang)
+
+    sources_list = []
+    if wiki:
+        sources_list.append({"name": f"Wikipedia {wiki['lang']}", "url": wiki.get("url")})
+    if ddg:
+        sources_list.append({"name": ddg.get("source") or "DuckDuckGo", "url": ddg.get("url")})
+
+    primary = wiki or ddg
+    if not primary:
+        return None
+
+    sumber_nama = ", ".join([s["name"] for s in sources_list if s.get("name")]) or "-"
+    teks = f"{primary['title']}: {primary['extract']} (Sumber: {sumber_nama})"
+    return {"text": teks, "sources": sources_list, "primary": primary, "wiki": wiki, "ddg": ddg}
+
+
 # --- Utilitas Konteks ---
 def update_context(pembicara: str, isi: str):
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -177,19 +262,20 @@ def save_log_context():
 def generate_response_from_context(user_input):
     user_input_lower = user_input.lower().strip()
 
-    # 1. Cek pertanyaan yang mengacu ke topik aktif Wikipedia
+    # 1. Cek pertanyaan yang mengacu ke topik aktif (gunakan multi-sumber)
     if any(user_input_lower.startswith(prefix) for prefix in [
         "apa itu", "siapa itu", "apa artinya", "apa maksud", "siapa", "apa", "tentang", "jelaskan", "definisi"
     ]):
         # Gunakan topik aktif kalau user pakai kata ganti rujukan
         query = resolve_followup_query(user_input_lower)
-        info = get_wikipedia_summary(normalize_query_for_wiki(query), lang="id")
-        if info:
-            set_topik_aktif_dari_wiki(info)
-            teks = f"{info['title']}: {info['extract']} (sumber Wikipedia {info['lang']})"
-            return teks
+        info_multi = get_knowledge_from_multiple_sources(normalize_query_for_wiki(query), lang="id")
+        if info_multi:
+            # Set topik aktif jika ada info Wikipedia
+            if info_multi.get("wiki"):
+                set_topik_aktif_dari_wiki(info_multi["wiki"])
+            return info_multi["text"]
         else:
-            return "Maaf Bos, saya tidak menemukan informasi yang cocok di Wikipedia."
+            return "Maaf Bos, saya tidak menemukan informasi yang cocok dari sumber yang tersedia."
 
     # 2. Cek kata-kata santun atau ucapan terima kasih
     if any(kata in user_input_lower for kata in ["terima kasih", "makasih", "thanks"]):

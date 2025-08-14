@@ -630,6 +630,12 @@ def generate_response_from_context(user_input):
 	]):
 		# Gunakan topik aktif kalau user pakai kata ganti rujukan
 		query = resolve_followup_query(user_input_lower)
+		# Coba tarik konteks dari memori
+		hits = retrieve_from_memory(query, top_k=3)
+		if hits:
+			ringkas = "; ".join([h.get("text") for h in hits if h.get("type") == "fact"])
+			if ringkas:
+				return f"Ringkas konteks: {ringkas}"
 		info_multi = get_knowledge_from_multiple_sources(normalize_query_for_wiki(query), lang="id")
 		if info_multi:
 			# Set topik aktif jika ada info Wikipedia
@@ -663,6 +669,17 @@ def generate_response_from_context(user_input):
 	key = f"imam: {user_input_lower}"
 	if key in reply:
 		return reply[key]
+
+	# 4b. Retrieval dari memori sebelum minta ajar
+	hits = retrieve_from_memory(user_input_lower, top_k=3)
+	if hits:
+		bag = []
+		for h in hits:
+			if h.get("type") == "fact":
+				bag.append(f"- {h.get('text')}")
+			else:
+				bag.append(f"- {h.get('speaker')}: {h.get('text')}")
+		return "Ini yang relevan dari memori:\n" + "\n".join(bag)
 
 	# 5. Jika tidak ketemu, untuk input sangat singkat kasih jawaban ramah standar
 	if len(user_input_lower) <= 3:
@@ -997,6 +1014,91 @@ def input_suara():
 		return ""
 
 
+def normalize_text(teks: str) -> str:
+	if not teks:
+		return ""
+	t = teks.lower().strip()
+	# Replace common slang/shortcuts
+	replacements = {
+		"gk": "tidak",
+		"ga": "tidak",
+		"gak": "tidak",
+		"ngga": "tidak",
+		"nggak": "tidak",
+		"tdk": "tidak",
+		"yg": "yang",
+		"dgn": "dengan",
+		"dg": "dengan",
+		"jgn": "jangan",
+		"hrs": "harus",
+		"bgt": "banget",
+		"bgs": "bagus",
+		"btw": "ngomong-ngomong",
+		"udh": "sudah",
+		"udah": "sudah",
+		"sdh": "sudah",
+		"sm": "sama",
+		"smua": "semua",
+		"skrg": "sekarang",
+		"bsk": "besok",
+		"kmrn": "kemarin",
+	}
+	for a, b in replacements.items():
+		t = t.replace(f" {a} ", f" {b} ")
+	# Remove filler/particles at ends
+	fillers = ["dong", "nih", "deh", "lah", "ya", "kok", "sih", "kan"]
+	for f in fillers:
+		if t.endswith(f" {f}"):
+			t = t[: -len(f) - 1]
+	# Collapse multiple spaces
+	t = " ".join(t.split())
+	return t
+
+
+def _tokenize(text: str) -> list:
+	return [w for w in normalize_text(text).split() if len(w) > 1]
+
+
+def _bm25_score(query_tokens: list, doc_tokens_list: list) -> float:
+	# Simplified BM25-ish: TF * IDF with smoothing
+	if not query_tokens or not doc_tokens_list:
+		return 0.0
+	import math
+	doc_len = len(doc_tokens_list)
+	if doc_len == 0:
+		return 0.0
+	# term frequencies
+	tf = {}
+	for tok in doc_tokens_list:
+		tf[tok] = tf.get(tok, 0) + 1
+	# idf approximated by rarity in query
+	idf = {}
+	for t in set(query_tokens):
+		idf[t] = 1.5  # constant boost for matched terms
+	score = 0.0
+	for t in query_tokens:
+		score += (tf.get(t, 0) / (0.5 + 0.5 * doc_len)) * idf.get(t, 0)
+	return score
+
+
+def retrieve_from_memory(query: str, top_k: int = 3) -> list:
+	"""Return top facts/messages matching query using simple BM25-ish scoring."""
+	qt = _tokenize(query)
+	candidates = []
+	for f in memory.get("facts", []):
+		tokens = _tokenize(f.get("text", ""))
+		s = _bm25_score(qt, tokens)
+		if s > 0:
+			candidates.append((s, {"type": "fact", "text": f.get("text"), "ts": f.get("ts")}))
+	for m in memory.get("last_messages", [])[-40:]:
+		tokens = _tokenize(m.get("text", ""))
+		s = _bm25_score(qt, tokens)
+		if s > 0:
+			candidates.append((s, {"type": "message", "speaker": m.get("speaker"), "text": m.get("text"), "ts": m.get("ts")}))
+	candidates.sort(key=lambda x: x[0], reverse=True)
+	return [c[1] for c in candidates[:top_k]]
+
+
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
 	# LLM dinonaktifkan (default OFF permanen)
@@ -1030,7 +1132,7 @@ if __name__ == "__main__":
 			print("Yayat: Bos belum ngetik apa-apa.")
 			continue
 
-		pesan = user_input.lower()
+		pesan = normalize_text(user_input)
 		simpan_log("Imam", user_input)
 		update_context("Imam", user_input)
 		memory_push_message("Imam", user_input) # Push user input to memory

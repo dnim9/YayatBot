@@ -4,58 +4,63 @@
   "riwayat": [
     {
       "speaker": "Imam",
-      "text": "status",
-      "ts": "2025-08-14 04:30:25"
-    },
-    {
-      "speaker": "Imam",
-      "text": "udah makan?",
-      "ts": "2025-08-14 04:30:25"
-    },
-    {
-      "speaker": "Yayat",
-      "text": "Yayat ini bot jadi gak makan, Bos. Bos sendiri sudah makan?",
-      "ts": "2025-08-14 04:30:25"
-    },
-    {
-      "speaker": "Imam",
-      "text": "udah yat",
-      "ts": "2025-08-14 04:30:25"
-    },
-    {
-      "speaker": "Yayat",
-      "text": "Sip, perut aman. Lanjut mau ngapain, Bos?",
-      "ts": "2025-08-14 04:30:25"
-    },
-    {
-      "speaker": "Imam",
       "text": "trading",
-      "ts": "2025-08-14 04:30:25"
+      "ts": "2025-08-14 04:39:45"
     },
     {
       "speaker": "Yayat",
       "text": "apa itu kulkas",
-      "ts": "2025-08-14 04:30:25"
+      "ts": "2025-08-14 04:39:45"
     },
     {
       "speaker": "Imam",
-      "text": "wiki indonesia",
-      "ts": "2025-08-14 04:30:25"
+      "text": "project?",
+      "ts": "2025-08-14 04:39:45"
+    },
+    {
+      "speaker": "Imam",
+      "text": "memori?",
+      "ts": "2025-08-14 04:39:45"
+    },
+    {
+      "speaker": "Imam",
+      "text": "apa itu kopi",
+      "ts": "2025-08-14 04:39:45"
     },
     {
       "speaker": "Yayat",
-      "text": "Indonesia: Indonesia, dengan nama resmi Republik Indonesia, adalah sebuah negara di Asia Tenggara dan Oseania, antara Samudra Hindia dan Samudra Pasifik. Indonesia merupakan negara lintas benua karena diapit oleh benua Asia dan Australia (Oseania). Selain itu, Indonesia juga menjadi wilayah pertemuan Samudra Pasifik dan Samudra Hindia, serta menjadi salah satu negara yang dilalui oleh khatulistiwa. Indonesia memiliki luas wilayah sebesar 1.904.569 km², sehingga menjadikannya sebagai negara terluas ke-14 dunia. (sumber: Wikipedia Indonesia)",
-      "ts": "2025-08-14 04:30:25"
+      "text": "Kalau ngopi, Yayat ikut semangatnya aja ☕. Bos udah ngopi?",
+      "ts": "2025-08-14 04:39:45"
+    },
+    {
+      "speaker": "Imam",
+      "text": "kalau jenuh gimana",
+      "ts": "2025-08-14 04:39:45"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Biar gak jenuh, kita bisa bikin to-do kecil sekarang. Mau aku bantu susun 3 langkah cepat? (trading/coding/santai)",
+      "ts": "2025-08-14 04:39:45"
+    },
+    {
+      "speaker": "Imam",
+      "text": "ringkasin dong preferensi kopi",
+      "ts": "2025-08-14 04:39:45"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Kalau ngopi, Yayat ikut semangatnya aja ☕. Bos udah ngopi?",
+      "ts": "2025-08-14 04:39:45"
     },
     {
       "speaker": "Imam",
       "text": "keluar",
-      "ts": "2025-08-14 04:30:25"
+      "ts": "2025-08-14 04:39:45"
     },
     {
       "speaker": "Yayat",
-      "text": "Selamat istirahat Bos Imam, Yayat izin pamit.",
-      "ts": "2025-08-14 04:30:25"
+      "text": "Sampai jumpa Bos Imam. Yayat standby. Jaga dirimu.",
+      "ts": "2025-08-14 04:39:45"
     }
   ],
   "topik_aktif": "Indonesia",

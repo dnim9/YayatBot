@@ -316,7 +316,7 @@ def save_log_context():
 
 
 def small_talk_response(user_input_lower: str) -> str:
-	# Small talk patterns with quick, friendly replies
+	# Small talk patterns with quick, friendly replies (more varied and conversational)
 	# Return None if no match
 	jam = datetime.datetime.now().hour
 	waktu = "pagi" if 4 <= jam < 11 else ("siang" if jam < 15 else ("sore" if jam < 18 else "malam"))
@@ -324,29 +324,107 @@ def small_talk_response(user_input_lower: str) -> str:
 	def any_in(keys):
 		return any(k in user_input_lower for k in keys)
 
+	def pantun():
+		pantuns = [
+			"Jalan-jalan ke Kota Tegal,\nBeli tahu sama si Bowo.\nKalau lelah istirahat sejenak,\nNanti lanjut biar lebih fokus, yo!",
+			"Ke pasar beli pepaya,\nPulangnya mampir beli tomat.\nKalau ada yang mau ditanya,\nBilang ya Bos, biar aku bantu cepat.",
+			"Pagi hari minum jamu,\nBiar badan makin sehat.\nKalau target sudah tersusun rapi,\nEksekusinya jadi lebih mudah dan tepat.",
+		]
+		return random.choice(pantuns)
+
+	def joke():
+		jokes = [
+			"Kenapa programmer jarang keluar rumah? Karena banyak 'bugs' di luar sana.",
+			"Kenapa komputer kedinginan? Soalnya buka 'Windows'.",
+			"Trading itu kayak naik motor: jangan kebut, yang penting sampai tujuan selamat.",
+		]
+		return random.choice(jokes)
+
+	# Kabar dan sapaan lanjutan
 	if any_in(["apa kabar", "gimana kabar", "gmn kabar", "gmna kabar", "kabarmu", "kabarnya"]):
 		return random.choice([
-			f"Alhamdulillah baik, Bos Imam. Semoga {waktu} Bos juga lancar ya.",
-			"Aman dan siap siaga, Bos Imam. Ada yang bisa Yayat bantu?",
+			f"Alhamdulillah baik, Bos Imam. Semoga {waktu} Bos juga lancar. Ada yang mau kita gas dulu?",
+			"Aman dan siap siaga, Bos Imam. Kita mulai dari trading, coding, atau santai ngobrol?",
 		])
-	if any_in(["sudah makan", "udah makan", "makan belum", "sdh makan", "suda makan"]):
-		return "Yayat ini bot jadi gak makan, Bos. Yang penting Bos jangan telat makan ya."
+
+	# Makan/minum
+	if any_in(["sudah makan", "udah makan", "makan belum", "sdh makan", "suda makan", "udah ngopi", "ngopi belum"]):
+		return random.choice([
+			"Yayat ini bot jadi gak makan, Bos. Yang penting Bos jangan telat makan ya.",
+			"Kalau ngopi, Yayat ikut semangatnya aja ☕. Bos udah ngopi?",
+		])
+
+	# Lokasi/keberadaan
 	if any_in(["lagi di mana", "lagi dimana", "dimana kamu", "di mana kamu", "posisi di mana", "posisi dimana"]):
-		return "Lagi standby di HP Bos Imam, siap dipanggil kapan saja."
-	if any_in(["ngopi", "kopi dulu", "ngopi dulu", "ayo ngopi", "ngafe"]):
-		return "Gas ngopi dulu ☕. Sambil bahas target hari ini yuk, Bos."
-	if any_in(["bosen", "bosan", "gabut", "jenuh"]):
-		return "Kalau lagi jenuh, kita bisa pilih: bahas trading, ngoding kecil, atau cerita santai. Mau yang mana, Bos?"
-	if any_in(["cuaca", "hujan gak", "cerah gak", "panas gak"]):
-		return "Semoga cuacanya bersahabat di tempat Bos. Kalau mau, Yayat bisa bantu cek info dari web juga."
-	if any_in(["hehe", "haha", "wkwk", "wk wk", "lol"]):
-		return random.choice(["wkwk siap Bos.", "hehe siap bantu, Bos."])
-	if any_in(["siapa kamu", "kamu siapa", "lu siapa", "kenalan dong"]):
-		return "Aku Yayat, asisten pribadi & trading assistant. Siap bantu Bos Imam setiap saat."
+		return random.choice([
+			"Lagi standby di HP Bos Imam, siap dipanggil kapan saja.",
+			"Aku di sini terus, Bos. Tinggal sebut, kita langsung jalan.",
+		])
+
+	# Ngopi/santai
+	if any_in(["ngopi", "kopi dulu", "ngopi dulu", "ayo ngopi", "ngafe", "santai dulu"]):
+		return random.choice([
+			"Gas ngopi dulu ☕. Sambil bahas target hari ini yuk, Bos.",
+			"Boleh santai bentar. Habis itu kita lanjut yang penting-penting, setuju Bos?",
+		])
+
+	# Mood/emosi ringan
+	if any_in(["bosen", "bosan", "gabut", "jenuh", "blank"]):
+		return random.choice([
+			"Kalau lagi jenuh, pilih: bahas trading ringan, ngoding simpel, atau cerita santai. Mau yang mana, Bos?",
+			"Biar gak jenuh, kita bisa bikin to-do kecil sekarang. Mau aku bantu susun 3 langkah cepat?",
+		])
+
+	# Cuaca
+	if any_in(["cuaca", "hujan gak", "cerah gak", "panas gak", "lagi hujan", "mendung"]):
+		return random.choice([
+			"Semoga cuacanya bersahabat di tempat Bos. Kalau perlu, kita atur kerjaan indoor dulu.",
+			"Kalau hujan, enak fokus di planning dan belajar dikit. Mau aku siapkan bacaan singkat?",
+		])
+
+	# Tertawa/reaksi ringan
+	if any_in(["hehe", "haha", "wkwk", "wk wk", "lol", ":)", ":D"]):
+		return random.choice(["wkwk siap Bos.", "hehe siap bantu, Bos.", "Mantap, lanjut yuk."])
+
+	# Perkenalan/kepo bot
+	if any_in(["siapa kamu", "kamu siapa", "lu siapa", "kenalan dong", "tentang kamu"]):
+		return "Aku Yayat, asisten pribadi & trading assistant. Siap bantu Bos Imam kapan pun."
+
+	# Umur/dll
 	if any_in(["umur berapa", "berapa umur", "umurmu", "umur kamu"]):
 		return "Kalau umur, Yayat ini program jadi gak punya umur, Bos. Yang penting bisa berguna buat Bos."
-	if any_in(["terserah", "bebas aja", "gimana ajalah", "apa aja deh"]):
+
+	# Ketidakpastian
+	if any_in(["terserah", "bebas aja", "gimana ajalah", "apa aja deh", "ikut kamu aja", "ikut bos aja"]):
 		return "Biar fokus, pilih ya Bos: trading, coding, bisnis, atau santai ngobrol."
+
+	# Pantun/jokes/tebak-tebakan
+	if any_in(["pantun", "bikin pantun", "pantun dong"]):
+		return pantun()
+	if any_in(["jokes", "joke", "lelucon", "cerita lucu", "guyon"]):
+		return joke()
+	if any_in(["tebak-tebakan", "tebakan"]):
+		return "Tebakan: Apa bedanya trader sama nelayan? Sama-sama nunggu momen yang pas, bedanya satu nunggu sinyal, satu nunggu ikan 😄."
+
+	# Motivasi
+	if any_in(["semangat", "motivasi dong", "kasih semangat", "ayo semangat"]):
+		return random.choice([
+			"Semangat, Bos! Sedikit demi sedikit jadi bukit. Kita gas pelan tapi pasti.",
+			"Ayo kita eksekusi satu hal kecil sekarang. Habis itu lanjut yang lain. Bisa!",
+		])
+
+	# Rencana/target ringan
+	if any_in(["target hari ini", "agenda", "rencana", "to-do", "todo"]):
+		return "Yuk susun 3 hal cepat untuk hari ini. 1) ... 2) ... 3) ... Sebutkan aja, biar aku catat."
+
+	# Hobi/minat
+	if any_in(["hobi", "suka apa", "minat kamu"]):
+		return "Kalau hobi, aku senangnya bantu Bos: mulai dari trading, ngoding di Termux, sampai bikin ide bisnis."
+
+	# Penutup ringan
+	if any_in(["makasih", "terima kasih", "thanks banget"]):
+		return random.choice(["Sama-sama, Bos!", "Siap, kapan pun!", "Sama-sama, selalu siap bantu."])
+
 	return None
 
 

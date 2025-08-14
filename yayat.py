@@ -66,10 +66,102 @@ time.sleep(1)  # Jeda waktu agar tampilan terlihat
 
 LOG_FILE = "yayat_log_context.json"
 KAMUS_FILE = "reply_dynamic.json"
+MEMORY_FILE = "yayat_memory.json"
 mode_senyap = False
 mode_tidur = False
 log_context = {"topik": None, "terakhir": None}
 state_emosi = "netral"
+
+# Long-term memory structure
+memory = {
+	"facts": [],  # list of {text, tags, ts}
+	"current_project": None,
+	"preferences": {},
+	"last_seen": None,
+	"last_messages": []  # ring buffer of recent messages
+}
+
+def load_memory():
+	global memory
+	if os.path.exists(MEMORY_FILE):
+		try:
+			with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+				memory = json.load(f)
+		except Exception:
+			memory = {
+				"facts": [],
+				"current_project": None,
+				"preferences": {},
+				"last_seen": None,
+				"last_messages": []
+			}
+
+
+def save_memory():
+	with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+		json.dump(memory, f, indent=2, ensure_ascii=False)
+
+
+def memory_add_fact(text: str, tags=None):
+	if not text:
+		return
+	entry = {
+		"text": text.strip(),
+		"tags": tags or [],
+		"ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+	}
+	memory.setdefault("facts", []).append(entry)
+	# Limit facts to last 200 to avoid bloat
+	if len(memory["facts"]) > 200:
+		memory["facts"] = memory["facts"][-200:]
+	save_memory()
+
+
+def memory_forget(keyword: str):
+	if not keyword:
+		return 0
+	facts = memory.get("facts", [])
+	before = len(facts)
+	keyword_lower = keyword.lower()
+	facts = [f for f in facts if keyword_lower not in (f.get("text", "").lower())]
+	memory["facts"] = facts
+	save_memory()
+	return before - len(facts)
+
+
+def memory_set_project(name: str):
+	memory["current_project"] = name.strip() if name else None
+	save_memory()
+
+
+def memory_get_project():
+	return memory.get("current_project")
+
+
+def memory_push_message(speaker: str, text: str):
+	msg = {
+		"speaker": speaker,
+		"text": text,
+		"ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+	}
+	buf = memory.setdefault("last_messages", [])
+	buf.append(msg)
+	if len(buf) > 50:
+		memory["last_messages"] = buf[-50:]
+	memory["last_seen"] = msg["ts"]
+	save_memory()
+
+
+def memory_quick_summary(max_items: int = 5) -> str:
+	proj = memory.get("current_project")
+	facts = memory.get("facts", [])[-max_items:]
+	parts = []
+	if proj:
+		parts.append(f"Project aktif: {proj}.")
+	if facts:
+		for i, f in enumerate(facts, 1):
+			parts.append(f"{i}. {f.get('text')}")
+	return "\n".join(parts) if parts else "Memori masih kosong, Bos."
 
 # Tambahan: memori konteks percakapan
 MAX_CONTEXT_TURNS = 12
@@ -834,6 +926,9 @@ def input_suara():
 if __name__ == "__main__":
 	# Optional: LLM mode toggle via env
 	USE_LLM_DEFAULT = os.environ.get("YAYAT_USE_LLM", "0") == "1"
+	# Default ON unless explicitly disabled via env
+	if os.environ.get("YAYAT_USE_LLM") is None:
+		USE_LLM_DEFAULT = True
 	try:
 		import llm_client  # optional provider wrapper
 		LLM_AVAILABLE = True
@@ -843,15 +938,16 @@ if __name__ == "__main__":
 	use_llm = USE_LLM_DEFAULT and LLM_AVAILABLE
 
 	load_log_context()
+	load_memory() # Load memory on startup
 	alarm_yayat.cek_alarm_background()
-	print("=== YayatBot v2.1 – Mode Kontekstual (LLM opsional) ✅ ===")
+	print("=== YayatBot v2.2 – Mode Kontekstual (LLM default ON + Memori Jangka Panjang) ✅ ===")
 	print(
 		"Ketik 'edit' untuk ubah jawaban, 'senyap' untuk nonaktifkan suara, 'bersuara' untuk aktifkan kembali, 'keluar' untuk keluar."
 	)
 	print(
 		"Untuk alarm: 'tambah alarm HH:MM', 'daftar alarm', 'hapus alarm [nomor]'\n"
 	)
-	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia. Perintah LLM: 'pintar on' / 'pintar off'.\n")
+	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia. LLM default aktif. Perintah: 'pintar off', 'status', 'set temp 0.8', 'set model gpt-4o-mini'.\n")
 
 	def generate_llm_reply_aware_context(prompt_text: str) -> str:
 		if not (LLM_AVAILABLE and use_llm and prompt_text.strip()):
@@ -940,6 +1036,7 @@ if __name__ == "__main__":
 		pesan = user_input.lower()
 		simpan_log("Imam", user_input)
 		update_context("Imam", user_input)
+		memory_push_message("Imam", user_input) # Push user input to memory
 
 		# --- Logika Perintah Khusus (lebih fleksibel) ---
 		if pesan in ["pintar on", "llm on", "mode pintar on"]:
@@ -1015,6 +1112,35 @@ if __name__ == "__main__":
 				print("Yayat:", teks)
 				simpan_log("Yayat", teks)
 				update_context("Yayat", teks)
+			continue
+		elif pesan.startswith("ingat ") or pesan.startswith("remember "):
+			fakta = user_input.split(" ", 1)[1].strip()
+			if fakta:
+				memory_add_fact(fakta)
+				print("Yayat: Oke, sudah kuingat, Bos.")
+			else:
+				print("Yayat: Apa yang mau diingat, Bos?")
+			continue
+		elif pesan.startswith("lupa ") or pesan.startswith("forget "):
+			kw = user_input.split(" ", 1)[1].strip()
+			removed = memory_forget(kw)
+			print(f"Yayat: Sudah kulupakan {removed} item yang cocok.")
+			continue
+		elif pesan.startswith("project set "):
+			name = user_input.split(" ", 2)[2].strip() if len(user_input.split(" ")) >= 3 else ""
+			if name:
+				memory_set_project(name)
+				print(f"Yayat: Project aktif diset ke: {name}.")
+			else:
+				print("Yayat: Nama project kosong.")
+			continue
+		elif pesan in ["project?", "project", "lihat project"]:
+			cp = memory_get_project()
+			print(f"Yayat: Project aktif: {cp if cp else '-'}.")
+			continue
+		elif pesan in ["memori?", "memory?", "ingatanku", "ringkas memori"]:
+			print("Yayat:")
+			print(memory_quick_summary())
 			continue
 
 		if pesan in ["keluar", "exit", "quit", "shut down system"]:

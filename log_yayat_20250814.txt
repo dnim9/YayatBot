@@ -73,3 +73,13 @@ Nanti lanjut biar lebih fokus, yo!
 [03:36:03] Yayat: Sama-sama, selalu siap bantu.
 [03:36:03] Imam: keluar
 [03:36:03] Yayat: Sampai jumpa Bos Imam. Yayat standby. Jaga dirimu.
+[04:17:35] Imam: status
+[04:17:35] Imam: project set trading XAU/USD harian
+[04:17:35] Imam: ingat bos suka kopi pahit
+[04:17:35] Imam: memori?
+[04:17:35] Imam: apa itu EMA 50?
+[04:17:37] Yayat: Bos, EMA 50 itu adalah Exponential Moving Average dengan periode 50. Jadi, ini adalah indikator yang menghitung rata-rata harga dalam 50 periode terakhir, tapi lebih memberi bobot pada harga terkini. Cocok buat ngeliat tren jangka menengah, jadi bisa bantu Bos dalam ngambil keputusan trading. Kapan mau coba pakai? ☕📈
+[04:17:37] Imam: set temp 0.9
+[04:17:37] Imam: status
+[04:17:37] Imam: keluar
+[04:17:37] Yayat: Bye Bos, jangan lupa istirahat. Yayat tetap standby!

@@ -328,6 +328,10 @@ def generate_response_from_context(user_input):
 			waktu = "malam"
 		return f"Selamat {waktu}, Bos Imam. Ada yang bisa Yayat bantu?"
 
+	# 0b. Small talk sederhana
+	if any(phrase in user_input_lower for phrase in ["lagi apa", "ngapain", "ngapain nih", "sedang apa", "lagi ngapain"]):
+		return "Lagi standby siap bantu, Bos."
+
 	# 1. Cek pertanyaan yang mengacu ke topik aktif (gunakan multi-sumber)
 	if any(user_input_lower.startswith(prefix) for prefix in [
 		"apa itu", "siapa itu", "apa artinya", "apa maksud", "siapa", "apa", "tentang", "jelaskan", "definisi"
@@ -776,6 +780,16 @@ if __name__ == "__main__":
 		elif pesan in ["pintar off", "llm off", "mode pintar off"]:
 			use_llm = False
 			print("Yayat: Mode pintar dimatikan.")
+			continue
+		elif pesan in ["status", "pintar?", "llm?"]:
+			provider = (
+				"openai" if os.environ.get("OPENAI_API_KEY") else (
+					"lmstudio" if os.environ.get("LMSTUDIO_BASE_URL") else (
+						"ollama" if os.environ.get("OLLAMA_BASE_URL") else "auto"
+					)
+				)
+			)
+			print(f"Yayat: LLM tersedia={LLM_AVAILABLE}, mode={'aktif' if use_llm else 'nonaktif'}, provider={provider}.")
 			continue
 		elif pesan.startswith("tambah alarm"):
 			waktu = pesan.replace("tambah alarm", "").strip()

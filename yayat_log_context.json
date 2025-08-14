@@ -5,37 +5,32 @@
     {
       "speaker": "Imam",
       "text": "pintar on",
-      "ts": "2025-08-14 03:05:35"
+      "ts": "2025-08-14 03:22:31"
     },
     {
       "speaker": "Imam",
-      "text": "hai",
-      "ts": "2025-08-14 03:05:35"
-    },
-    {
-      "speaker": "Yayat",
-      "text": "Hai! Ada yang bisa saya bantu?",
-      "ts": "2025-08-14 03:05:37"
+      "text": "status",
+      "ts": "2025-08-14 03:22:31"
     },
     {
       "speaker": "Imam",
-      "text": "apa itu kulkas",
-      "ts": "2025-08-14 03:05:37"
+      "text": "lagi apa yat?",
+      "ts": "2025-08-14 03:22:31"
     },
     {
       "speaker": "Yayat",
-      "text": "Kulkas adalah alat rumah tangga yang digunakan untuk menyimpan makanan dan minuman agar tetap segar dan dingin. Biasanya, kulkas memiliki dua bagian: bagian pendingin untuk menyimpan makanan sehari-hari dan bagian pembeku untuk menyimpan es dan makanan beku. Ada yang ingin kamu ketahui lebih lanjut tentang kulkas?",
-      "ts": "2025-08-14 03:05:39"
+      "text": "Aku lagi siap bantu kamu, ada yang bisa aku bantu?",
+      "ts": "2025-08-14 03:22:32"
     },
     {
       "speaker": "Imam",
       "text": "keluar",
-      "ts": "2025-08-14 03:05:39"
+      "ts": "2025-08-14 03:22:32"
     },
     {
       "speaker": "Yayat",
-      "text": "Selamat istirahat Bos Imam, Yayat izin pamit.",
-      "ts": "2025-08-14 03:05:39"
+      "text": "Bye Bos, jangan lupa istirahat. Yayat tetap standby!",
+      "ts": "2025-08-14 03:22:32"
     }
   ]
 }

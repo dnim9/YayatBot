@@ -24,3 +24,12 @@
 [03:05:39] Yayat: Kulkas adalah alat rumah tangga yang digunakan untuk menyimpan makanan dan minuman agar tetap segar dan dingin. Biasanya, kulkas memiliki dua bagian: bagian pendingin untuk menyimpan makanan sehari-hari dan bagian pembeku untuk menyimpan es dan makanan beku. Ada yang ingin kamu ketahui lebih lanjut tentang kulkas?
 [03:05:39] Imam: keluar
 [03:05:39] Yayat: Selamat istirahat Bos Imam, Yayat izin pamit.
+[03:21:20] Imam: pintar off
+[03:21:20] Imam: lagi apa yat?
+[03:21:20] Yayat: keluar
+[03:22:31] Imam: pintar on
+[03:22:31] Imam: status
+[03:22:31] Imam: lagi apa yat?
+[03:22:32] Yayat: Aku lagi siap bantu kamu, ada yang bisa aku bantu?
+[03:22:32] Imam: keluar
+[03:22:32] Yayat: Bye Bos, jangan lupa istirahat. Yayat tetap standby!

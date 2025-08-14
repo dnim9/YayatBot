@@ -645,16 +645,49 @@ def input_suara():
 
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
+	# Optional: LLM mode toggle via env
+	USE_LLM_DEFAULT = os.environ.get("YAYAT_USE_LLM", "0") == "1"
+	try:
+		import llm_client  # optional provider wrapper
+		LLM_AVAILABLE = True
+	except Exception:
+		llm_client = None
+		LLM_AVAILABLE = False
+	use_llm = USE_LLM_DEFAULT and LLM_AVAILABLE
+
 	load_log_context()
 	alarm_yayat.cek_alarm_background()
-	print("=== YayatBot v2.0 – Logika Lebih Fleksibel ✅ ===")
+	print("=== YayatBot v2.1 – Mode Kontekstual (LLM opsional) ✅ ===")
 	print(
 		"Ketik 'edit' untuk ubah jawaban, 'senyap' untuk nonaktifkan suara, 'bersuara' untuk aktifkan kembali, 'keluar' untuk keluar."
 	)
 	print(
 		"Untuk alarm: 'tambah alarm HH:MM', 'daftar alarm', 'hapus alarm [nomor]'\n"
 	)
-	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia.\n")
+	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia. Perintah LLM: 'pintar on' / 'pintar off'.\n")
+
+	def generate_llm_reply_aware_context(prompt_text: str) -> str:
+		if not (LLM_AVAILABLE and use_llm and prompt_text.strip()):
+			return None
+		# Build compact conversation window
+		history = []
+		for turn in context_window[-8:]:
+			role = "assistant" if turn["speaker"] == "Yayat" else "user"
+			history.append({"role": role, "content": turn["text"]})
+		aktif = log_context.get("topik_aktif")
+		aktif_info = f" Topik aktif: {aktif}." if aktif else ""
+		system_prompt = (
+			"Kamu adalah Yayat, asisten pribadi yang sopan, ringan, dan helpful. "
+			"Jawab singkat, langsung inti, gunakan bahasa Indonesia santai sopan. "
+			"Pertahankan konteks percakapan, pahami maksud implisit, dan hindari mengarang fakta."
+			+ aktif_info
+		)
+		messages = history + [{"role": "user", "content": prompt_text}]
+		try:
+			answer = llm_client.chat(messages, system=system_prompt, temperature=0.6, max_tokens=320)
+			return answer
+		except Exception:
+			return None
 
 	while True:
 		user_input = input("Ketik atau tekan Enter untuk input suara: ").strip()
@@ -670,7 +703,18 @@ if __name__ == "__main__":
 		update_context("Imam", user_input)
 
 		# --- Logika Perintah Khusus (lebih fleksibel) ---
-		if pesan.startswith("tambah alarm"):
+		if pesan in ["pintar on", "llm on", "mode pintar on"]:
+			if not LLM_AVAILABLE:
+				print("Yayat: Modul LLM belum tersedia. Siapkan OPENAI_API_KEY atau server LM Studio/Ollama.")
+				continue
+			use_llm = True
+			print("Yayat: Mode pintar aktif.")
+			continue
+		elif pesan in ["pintar off", "llm off", "mode pintar off"]:
+			use_llm = False
+			print("Yayat: Mode pintar dimatikan.")
+			continue
+		elif pesan.startswith("tambah alarm"):
 			waktu = pesan.replace("tambah alarm", "").strip()
 			print(alarm_yayat.tambah_alarm(waktu))
 			continue
@@ -750,9 +794,13 @@ if __name__ == "__main__":
 			perintah_jam()
 			continue
 
-		# Fallback: gunakan generator respons berbasis konteks + kamus dinamis
+		# Fallback: gunakan LLM jika aktif, jika tidak pakai generator konteks + kamus dinamis
 		else:
-			teks = generate_response_from_context(user_input)
+			teks_llm = generate_llm_reply_aware_context(user_input)
+			if teks_llm and teks_llm.strip():
+				teks = teks_llm.strip()
+			else:
+				teks = generate_response_from_context(user_input)
 			yayat_suara(teks)
 			print("Yayat:", teks)
 			simpan_log("Yayat", teks)

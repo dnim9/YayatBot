@@ -42,3 +42,16 @@
 [03:28:50] Yayat: Baik Imam, EMA 50 itu adalah Exponential Moving Average dengan periode 50. Ini digunakan untuk menghaluskan data harga selama 50 periode terakhir sehingga kamu bisa melihat tren lebih jelas. Biasanya, EMA ini membantu trader menentukan arah pasar. Kalau harga berada di atas EMA 50, bisa jadi sinyal bullish, sedangkan di bawahnya bisa jadi sinyal bearish. Gimana, ada yang mau ditanya lebih lanjut?
 [03:28:50] Imam: keluar
 [03:28:50] Yayat: Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.
+[03:32:04] Imam: pintar off
+[03:32:04] Imam: apa kabar
+[03:32:04] Yayat: Aman dan siap siaga, Bos Imam. Ada yang bisa Yayat bantu?
+[03:32:04] Imam: udah makan?
+[03:32:04] Yayat: Yayat ini bot jadi gak makan, Bos. Yang penting Bos jangan telat makan ya.
+[03:32:04] Imam: lagi dimana?
+[03:32:04] Yayat: Lagi standby di HP Bos Imam, siap dipanggil kapan saja.
+[03:32:04] Imam: ngopi dulu
+[03:32:04] Yayat: Gas ngopi dulu ☕. Sambil bahas target hari ini yuk, Bos.
+[03:32:04] Imam: terserah
+[03:32:04] Yayat: Biar fokus, pilih ya Bos: trading, coding, bisnis, atau santai ngobrol.
+[03:32:04] Imam: keluar
+[03:32:04] Yayat: Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.

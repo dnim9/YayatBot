@@ -315,6 +315,41 @@ def save_log_context():
 		json.dump(log_context, f, indent=2, ensure_ascii=False)
 
 
+def small_talk_response(user_input_lower: str) -> str:
+	# Small talk patterns with quick, friendly replies
+	# Return None if no match
+	jam = datetime.datetime.now().hour
+	waktu = "pagi" if 4 <= jam < 11 else ("siang" if jam < 15 else ("sore" if jam < 18 else "malam"))
+
+	def any_in(keys):
+		return any(k in user_input_lower for k in keys)
+
+	if any_in(["apa kabar", "gimana kabar", "gmn kabar", "gmna kabar", "kabarmu", "kabarnya"]):
+		return random.choice([
+			f"Alhamdulillah baik, Bos Imam. Semoga {waktu} Bos juga lancar ya.",
+			"Aman dan siap siaga, Bos Imam. Ada yang bisa Yayat bantu?",
+		])
+	if any_in(["sudah makan", "udah makan", "makan belum", "sdh makan", "suda makan"]):
+		return "Yayat ini bot jadi gak makan, Bos. Yang penting Bos jangan telat makan ya."
+	if any_in(["lagi di mana", "lagi dimana", "dimana kamu", "di mana kamu", "posisi di mana", "posisi dimana"]):
+		return "Lagi standby di HP Bos Imam, siap dipanggil kapan saja."
+	if any_in(["ngopi", "kopi dulu", "ngopi dulu", "ayo ngopi", "ngafe"]):
+		return "Gas ngopi dulu ☕. Sambil bahas target hari ini yuk, Bos."
+	if any_in(["bosen", "bosan", "gabut", "jenuh"]):
+		return "Kalau lagi jenuh, kita bisa pilih: bahas trading, ngoding kecil, atau cerita santai. Mau yang mana, Bos?"
+	if any_in(["cuaca", "hujan gak", "cerah gak", "panas gak"]):
+		return "Semoga cuacanya bersahabat di tempat Bos. Kalau mau, Yayat bisa bantu cek info dari web juga."
+	if any_in(["hehe", "haha", "wkwk", "wk wk", "lol"]):
+		return random.choice(["wkwk siap Bos.", "hehe siap bantu, Bos."])
+	if any_in(["siapa kamu", "kamu siapa", "lu siapa", "kenalan dong"]):
+		return "Aku Yayat, asisten pribadi & trading assistant. Siap bantu Bos Imam setiap saat."
+	if any_in(["umur berapa", "berapa umur", "umurmu", "umur kamu"]):
+		return "Kalau umur, Yayat ini program jadi gak punya umur, Bos. Yang penting bisa berguna buat Bos."
+	if any_in(["terserah", "bebas aja", "gimana ajalah", "apa aja deh"]):
+		return "Biar fokus, pilih ya Bos: trading, coding, bisnis, atau santai ngobrol."
+	return None
+
+
 def generate_response_from_context(user_input):
 	user_input_lower = user_input.lower().strip()
 
@@ -339,6 +374,10 @@ def generate_response_from_context(user_input):
 	# 0b. Small talk sederhana
 	if any(phrase in user_input_lower for phrase in ["lagi apa", "ngapain", "ngapain nih", "sedang apa", "lagi ngapain"]):
 		return "Lagi standby siap bantu, Bos."
+	# 0c. Small talk tambahan
+	st = small_talk_response(user_input_lower)
+	if st:
+		return st
 
 	# 1. Cek pertanyaan yang mengacu ke topik aktif (gunakan multi-sumber)
 	if any(user_input_lower.startswith(prefix) for prefix in [

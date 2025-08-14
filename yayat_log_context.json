@@ -4,48 +4,63 @@
   "riwayat": [
     {
       "speaker": "Imam",
-      "text": "pintar on",
-      "ts": "2025-08-14 03:28:48"
-    },
-    {
-      "speaker": "Imam",
-      "text": "status",
-      "ts": "2025-08-14 03:28:48"
-    },
-    {
-      "speaker": "Imam",
-      "text": "set temp 0.8",
-      "ts": "2025-08-14 03:28:48"
-    },
-    {
-      "speaker": "Imam",
-      "text": "set model gpt-4o-mini",
-      "ts": "2025-08-14 03:28:48"
-    },
-    {
-      "speaker": "Imam",
-      "text": "status",
-      "ts": "2025-08-14 03:28:48"
-    },
-    {
-      "speaker": "Imam",
-      "text": "apa itu EMA 50 dalam trading?",
-      "ts": "2025-08-14 03:28:48"
+      "text": "apa kabar",
+      "ts": "2025-08-14 03:32:04"
     },
     {
       "speaker": "Yayat",
-      "text": "Baik Imam, EMA 50 itu adalah Exponential Moving Average dengan periode 50. Ini digunakan untuk menghaluskan data harga selama 50 periode terakhir sehingga kamu bisa melihat tren lebih jelas. Biasanya, EMA ini membantu trader menentukan arah pasar. Kalau harga berada di atas EMA 50, bisa jadi sinyal bullish, sedangkan di bawahnya bisa jadi sinyal bearish. Gimana, ada yang mau ditanya lebih lanjut?",
-      "ts": "2025-08-14 03:28:50"
+      "text": "Aman dan siap siaga, Bos Imam. Ada yang bisa Yayat bantu?",
+      "ts": "2025-08-14 03:32:04"
+    },
+    {
+      "speaker": "Imam",
+      "text": "udah makan?",
+      "ts": "2025-08-14 03:32:04"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Yayat ini bot jadi gak makan, Bos. Yang penting Bos jangan telat makan ya.",
+      "ts": "2025-08-14 03:32:04"
+    },
+    {
+      "speaker": "Imam",
+      "text": "lagi dimana?",
+      "ts": "2025-08-14 03:32:04"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Lagi standby di HP Bos Imam, siap dipanggil kapan saja.",
+      "ts": "2025-08-14 03:32:04"
+    },
+    {
+      "speaker": "Imam",
+      "text": "ngopi dulu",
+      "ts": "2025-08-14 03:32:04"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Gas ngopi dulu ☕. Sambil bahas target hari ini yuk, Bos.",
+      "ts": "2025-08-14 03:32:04"
+    },
+    {
+      "speaker": "Imam",
+      "text": "terserah",
+      "ts": "2025-08-14 03:32:04"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Biar fokus, pilih ya Bos: trading, coding, bisnis, atau santai ngobrol.",
+      "ts": "2025-08-14 03:32:04"
     },
     {
       "speaker": "Imam",
       "text": "keluar",
-      "ts": "2025-08-14 03:28:50"
+      "ts": "2025-08-14 03:32:04"
     },
     {
       "speaker": "Yayat",
       "text": "Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.",
-      "ts": "2025-08-14 03:28:50"
+      "ts": "2025-08-14 03:32:04"
     }
   ]
 }

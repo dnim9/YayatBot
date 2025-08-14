@@ -1,11 +1,11 @@
 {
   "tanggal": "20250814",
   "isi": [
-    "pintar on",
-    "pintar on",
-    "pintar off",
+    "Aman dan siap siaga, Bos Imam. Ada yang bisa Yayat bantu?",
     "keluar",
-    "keluar"
+    "set temp 0.8",
+    "pintar on",
+    "pintar on"
   ],
-  "refleksi": "Apa maksud sebenarnya dari 'pintar on'?"
+  "refleksi": "Apa maksud sebenarnya dari 'set temp 0.8'?"
 }

@@ -4,43 +4,61 @@
   "riwayat": [
     {
       "speaker": "Imam",
+      "text": "status",
+      "ts": "2025-08-14 04:30:25"
+    },
+    {
+      "speaker": "Imam",
       "text": "udah makan?",
-      "ts": "2025-08-14 04:23:21"
+      "ts": "2025-08-14 04:30:25"
     },
     {
       "speaker": "Yayat",
-      "text": "Belum, Bos. Tapi siap-siap buat ngemil sambil nunggu trading. Bos udah makan? 😄🍽️",
-      "ts": "2025-08-14 04:23:24"
+      "text": "Yayat ini bot jadi gak makan, Bos. Bos sendiri sudah makan?",
+      "ts": "2025-08-14 04:30:25"
     },
     {
       "speaker": "Imam",
       "text": "udah yat",
-      "ts": "2025-08-14 04:23:24"
+      "ts": "2025-08-14 04:30:25"
     },
     {
       "speaker": "Yayat",
-      "text": "Mantap, Bos! Semoga makannya enak. Ada yang mau dibahas seputar trading atau bisnis hari ini? 😄📈",
-      "ts": "2025-08-14 04:23:25"
+      "text": "Sip, perut aman. Lanjut mau ngapain, Bos?",
+      "ts": "2025-08-14 04:30:25"
     },
     {
       "speaker": "Imam",
       "text": "trading",
-      "ts": "2025-08-14 04:23:25"
+      "ts": "2025-08-14 04:30:25"
     },
     {
       "speaker": "Yayat",
-      "text": "Baik, Bos! Mau fokus ke XAU/USD atau forex lainnya? Atau ada strategi tertentu yang ingin dibahas? 📊✨",
-      "ts": "2025-08-14 04:23:26"
+      "text": "apa itu kulkas",
+      "ts": "2025-08-14 04:30:25"
+    },
+    {
+      "speaker": "Imam",
+      "text": "wiki indonesia",
+      "ts": "2025-08-14 04:30:25"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Indonesia: Indonesia, dengan nama resmi Republik Indonesia, adalah sebuah negara di Asia Tenggara dan Oseania, antara Samudra Hindia dan Samudra Pasifik. Indonesia merupakan negara lintas benua karena diapit oleh benua Asia dan Australia (Oseania). Selain itu, Indonesia juga menjadi wilayah pertemuan Samudra Pasifik dan Samudra Hindia, serta menjadi salah satu negara yang dilalui oleh khatulistiwa. Indonesia memiliki luas wilayah sebesar 1.904.569 km², sehingga menjadikannya sebagai negara terluas ke-14 dunia. (sumber: Wikipedia Indonesia)",
+      "ts": "2025-08-14 04:30:25"
     },
     {
       "speaker": "Imam",
       "text": "keluar",
-      "ts": "2025-08-14 04:23:26"
+      "ts": "2025-08-14 04:30:25"
     },
     {
       "speaker": "Yayat",
       "text": "Selamat istirahat Bos Imam, Yayat izin pamit.",
-      "ts": "2025-08-14 04:23:26"
+      "ts": "2025-08-14 04:30:25"
     }
-  ]
+  ],
+  "topik_aktif": "Indonesia",
+  "wiki_url": "https://id.wikipedia.org/wiki/Indonesia",
+  "wiki_lang": "id"
 }

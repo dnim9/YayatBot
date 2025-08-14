@@ -999,105 +999,27 @@ def input_suara():
 
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
-	# Optional: LLM mode toggle via env
-	USE_LLM_DEFAULT = os.environ.get("YAYAT_USE_LLM", "0") == "1"
-	# Default ON unless explicitly disabled via env
-	if os.environ.get("YAYAT_USE_LLM") is None:
-		USE_LLM_DEFAULT = True
-	try:
-		import llm_client  # optional provider wrapper
-		LLM_AVAILABLE = True
-	except Exception:
-		llm_client = None
-		LLM_AVAILABLE = False
-	use_llm = USE_LLM_DEFAULT and LLM_AVAILABLE
+	# LLM dinonaktifkan (default OFF permanen)
+	USE_LLM_DEFAULT = False
+	llm_client = None
+	LLM_AVAILABLE = False
+	use_llm = False
 
 	load_log_context()
 	load_memory() # Load memory on startup
 	alarm_yayat.cek_alarm_background()
-	print("=== YayatBot v2.2 – Mode Kontekstual (LLM default ON + Memori Jangka Panjang) ✅ ===")
+	print("=== YayatBot v2.3 – Small Talk & Follow-up Lebih Cerdas (Tanpa LLM) ✅ ===")
 	print(
 		"Ketik 'edit' untuk ubah jawaban, 'senyap' untuk nonaktifkan suara, 'bersuara' untuk aktifkan kembali, 'keluar' untuk keluar."
 	)
 	print(
-		"Untuk alarm: 'tambah alarm HH:MM', 'daftar alarm', 'hapus alarm [nomor]'\n"
+		"Untuk alarm: 'tambah alarm HH:MM', 'daftar alarm', 'hapus alarm [nomor]'. Perintah memori: 'ingat ...', 'lupa ...', 'project set ...', 'memori?'\n"
 	)
-	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia. LLM default aktif. Perintah: 'pintar off', 'status', 'set temp 0.8', 'set model gpt-4o-mini'.\n")
+	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia. Mode LLM dinonaktifkan.\n")
 
 	def generate_llm_reply_aware_context(prompt_text: str) -> str:
-		if not (LLM_AVAILABLE and use_llm and prompt_text.strip()):
-			return None
-		# Build compact conversation window
-		history = []
-		for turn in context_window[-8:]:
-			role = "assistant" if turn["speaker"] == "Yayat" else "user"
-			history.append({"role": role, "content": turn["text"]})
-		aktif = log_context.get("topik_aktif")
-		aktif_info = ""
-		if aktif:
-			aktif_info = (
-				f" Jika pertanyaan pakai rujukan tanpa menyebut topik baru, gunakan topik aktif: {aktif}. "
-				"Jika user menyebut topik baru eksplisit (misal 'apa itu kulkas'), abaikan topik aktif."
-			)
-		# Build persona-aware system prompt
-		def _build_persona(prompt_text: str) -> str:
-			name = (LLM_CONFIG or {}).get("name") or "YayatBot-LLM"
-			role = (LLM_CONFIG or {}).get("role") or "AI Assistant"
-			traits = ", ".join((LLM_CONFIG or {}).get("personality", {}).get("core_traits", []) or [])
-			styles = (LLM_CONFIG or {}).get("personality", {}).get("speech_styles", {})
-			formal = styles.get("formal_mode", {}) if isinstance(styles, dict) else {}
-			casual = styles.get("casual_mode", {}) if isinstance(styles, dict) else {}
-			formal_triggers = [t.lower() for t in (formal.get("trigger") or [])]
-			casual_triggers = [t.lower() for t in (casual.get("trigger") or [])]
-			is_formal = any(k in prompt_text.lower() for k in formal_triggers)
-			is_casual = any(k in prompt_text.lower() for k in casual_triggers)
-			# default: formal jika teknis; selain itu casual
-			mode = "formal" if is_formal and not is_casual else ("casual" if is_casual else "casual")
-			address_user = "Imam" if mode == "formal" else "Bos"
-			if isinstance(casual.get("address_user"), list) and mode == "casual":
-				address_user = casual.get("address_user")[0] or address_user
-			# time aware
-			if (LLM_CONFIG or {}).get("context_awareness", {}).get("adjust_response_based_on_time"):
-				h = datetime.datetime.now().hour
-				waktu = "pagi" if 4 <= h < 11 else ("siang" if h < 15 else ("sore" if h < 18 else "malam"))
-				time_hint = f" Sesuaikan sapaan untuk waktu {waktu}."
-			else:
-				time_hint = ""
-			know = (LLM_CONFIG or {}).get("knowledge_focus", [])
-			rules = (LLM_CONFIG or {}).get("rules", {})
-			examples = (LLM_CONFIG or {}).get("examples", {})
-			formal_ex = examples.get("formal")
-			casual_ex = examples.get("casual")
-			mode_tone = formal.get("tone") if mode == "formal" else casual.get("tone")
-			return (
-				f"Nama: {name}. Peran: {role}. Sifat: {traits}. Mode: {mode} (tone: {mode_tone}). "
-				f"Panggil user: {address_user}. Fokus pengetahuan: {', '.join(know)}. "
-				f"Aturan: no-wrong-info={rules.get('never_give_wrong_info', True)}, "
-				f"step-by-step={rules.get('calculate_step_by_step', True)}, humor-ringan={rules.get('keep_humor_light', True)}, "
-				f"samakan-tone={rules.get('always_match_user_tone', True)}."
-				+ time_hint
-				+ (f" Contoh formal: {formal_ex}." if formal_ex else "")
-				+ (f" Contoh santai: {casual_ex}." if casual_ex else "")
-			)
-		persona_prompt = _build_persona(prompt_text)
-		system_prompt = (
-			"Kamu adalah Yayat, asisten pribadi yang sopan, ringan, dan helpful. "
-			"Jawab singkat, langsung inti, gunakan bahasa Indonesia santai sopan. "
-			"Pertahankan konteks percakapan, pahami maksud implisit, dan hindari mengarang fakta."
-			+ aktif_info
-			+ " "
-			+ persona_prompt
-		)
-		# Inference params (allow runtime override)
-		temp = float(os.environ.get("YAYAT_LLM_TEMP", "0.6"))
-		max_tok = int(os.environ.get("YAYAT_LLM_MAXTOK", "320"))
-		# Insert current user message
-		messages = history + [{"role": "user", "content": prompt_text}]
-		try:
-			answer = llm_client.chat(messages, system=system_prompt, temperature=temp, max_tokens=max_tok)
-			return answer
-		except Exception:
-			return None
+		# LLM dimatikan
+		return None
 
 	while True:
 		user_input = input("Ketik atau tekan Enter untuk input suara: ").strip()
@@ -1115,47 +1037,19 @@ if __name__ == "__main__":
 
 		# --- Logika Perintah Khusus (lebih fleksibel) ---
 		if pesan in ["pintar on", "llm on", "mode pintar on"]:
-			if not LLM_AVAILABLE:
-				print("Yayat: Modul LLM belum tersedia. Siapkan OPENAI_API_KEY atau server LM Studio/Ollama.")
-				continue
-			use_llm = True
-			print("Yayat: Mode pintar aktif.")
+			print("Yayat: Mode LLM dinonaktifkan. Fokus ke small talk & follow-up lokal.")
 			continue
 		elif pesan in ["pintar off", "llm off", "mode pintar off"]:
-			use_llm = False
-			print("Yayat: Mode pintar dimatikan.")
+			print("Yayat: Mode LLM memang sudah off, Bos.")
 			continue
 		elif pesan in ["status", "pintar?", "llm?"]:
-			provider = (
-				"openai" if os.environ.get("OPENAI_API_KEY") else (
-					"lmstudio" if os.environ.get("LMSTUDIO_BASE_URL") else (
-						"ollama" if os.environ.get("OLLAMA_BASE_URL") else "auto"
-					)
-				)
-			)
-			print(f"Yayat: LLM tersedia={LLM_AVAILABLE}, mode={'aktif' if use_llm else 'nonaktif'}, provider={provider}.")
+			print("Yayat: LLM OFF. Menggunakan engine lokal untuk percakapan kontekstual.")
 			continue
 		elif pesan.startswith("set temp "):
-			val = pesan.replace("set temp", "").strip()
-			try:
-				t = float(val)
-				os.environ["YAYAT_LLM_TEMP"] = str(max(0.0, min(1.5, t)))
-				print(f"Yayat: Temperatur LLM diset ke {os.environ['YAYAT_LLM_TEMP']}.")
-			except Exception:
-				print("Yayat: Nilai temperatur tidak valid. Contoh: set temp 0.8")
+			print("Yayat: Pengaturan temperatur diabaikan karena LLM OFF.")
 			continue
 		elif pesan.startswith("set model "):
-			name = pesan.replace("set model", "").strip()
-			if not name:
-				print("Yayat: Model kosong. Contoh: set model gpt-4o-mini atau llama3.1:8b-instruct")
-				continue
-			# Heuristic: if includes ':' assume Ollama, else OpenAI
-			if ":" in name:
-				os.environ["YAYAT_OLLAMA_MODEL"] = name
-				print(f"Yayat: Model Ollama diset ke {name}.")
-			else:
-				os.environ["YAYAT_LLM_MODEL"] = name
-				print(f"Yayat: Model OpenAI/LMStudio diset ke {name}.")
+			print("Yayat: Pengaturan model diabaikan karena LLM OFF.")
 			continue
 		elif pesan.startswith("tambah alarm"):
 			waktu = pesan.replace("tambah alarm", "").strip()

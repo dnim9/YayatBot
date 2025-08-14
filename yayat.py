@@ -78,7 +78,8 @@ memory = {
 	"current_project": None,
 	"preferences": {},
 	"last_seen": None,
-	"last_messages": []  # ring buffer of recent messages
+	"last_messages": [],  # ring buffer of recent messages
+	"pending": None  # {kind, data, ts}
 }
 
 def load_memory():
@@ -114,6 +115,24 @@ def memory_add_fact(text: str, tags=None):
 	# Limit facts to last 200 to avoid bloat
 	if len(memory["facts"]) > 200:
 		memory["facts"] = memory["facts"][-200:]
+	save_memory()
+
+
+def memory_set_pending(kind: str, data=None):
+	memory["pending"] = {
+		"kind": kind,
+		"data": data or {},
+		"ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+	}
+	save_memory()
+
+
+def memory_get_pending():
+	return memory.get("pending")
+
+
+def memory_clear_pending():
+	memory["pending"] = None
 	save_memory()
 
 
@@ -440,10 +459,17 @@ def small_talk_response(user_input_lower: str) -> str:
 		])
 
 	# Makan/minum
-	if any_in(["sudah makan", "udah makan", "makan belum", "sdh makan", "suda makan", "udah ngopi", "ngopi belum"]):
+	if any_in(["sudah makan", "udah makan", "makan belum", "sdh makan", "suda makan", "mkn", "makan"]):
+		memory_set_pending("makan_check", {})
 		return random.choice([
-			"Yayat ini bot jadi gak makan, Bos. Yang penting Bos jangan telat makan ya.",
+			"Yayat ini bot jadi gak makan, Bos. Bos sendiri sudah makan?",
+			"Jangan lupa makan ya Bos. By the way, sudah makan belum?",
+		])
+	if any_in(["udah ngopi", "ngopi belum", "ngopi", "kopi"]):
+		memory_set_pending("ngopi_check", {})
+		return random.choice([
 			"Kalau ngopi, Yayat ikut semangatnya aja ☕. Bos udah ngopi?",
+			"Sip, kopi bikin fokus. Bos sudah ngopi belum?",
 		])
 
 	# Lokasi/keberadaan
@@ -454,17 +480,17 @@ def small_talk_response(user_input_lower: str) -> str:
 		])
 
 	# Ngopi/santai
-	if any_in(["ngopi", "kopi dulu", "ngopi dulu", "ayo ngopi", "ngafe", "santai dulu"]):
+	if any_in(["santai dulu"]):
 		return random.choice([
-			"Gas ngopi dulu ☕. Sambil bahas target hari ini yuk, Bos.",
 			"Boleh santai bentar. Habis itu kita lanjut yang penting-penting, setuju Bos?",
 		])
 
 	# Mood/emosi ringan
 	if any_in(["bosen", "bosan", "gabut", "jenuh", "blank"]):
+		memory_set_pending("choose_menu", {})
 		return random.choice([
 			"Kalau lagi jenuh, pilih: bahas trading ringan, ngoding simpel, atau cerita santai. Mau yang mana, Bos?",
-			"Biar gak jenuh, kita bisa bikin to-do kecil sekarang. Mau aku bantu susun 3 langkah cepat?",
+			"Biar gak jenuh, kita bisa bikin to-do kecil sekarang. Mau aku bantu susun 3 langkah cepat? (trading/coding/santai)",
 		])
 
 	# Cuaca
@@ -488,6 +514,7 @@ def small_talk_response(user_input_lower: str) -> str:
 
 	# Ketidakpastian
 	if any_in(["terserah", "bebas aja", "gimana ajalah", "apa aja deh", "ikut kamu aja", "ikut bos aja"]):
+		memory_set_pending("choose_menu", {})
 		return "Biar fokus, pilih ya Bos: trading, coding, bisnis, atau santai ngobrol."
 
 	# Pantun/jokes/tebak-tebakan
@@ -507,7 +534,8 @@ def small_talk_response(user_input_lower: str) -> str:
 
 	# Rencana/target ringan
 	if any_in(["target hari ini", "agenda", "rencana", "to-do", "todo"]):
-		return "Yuk susun 3 hal cepat untuk hari ini. 1) ... 2) ... 3) ... Sebutkan aja, biar aku catat."
+		memory_set_pending("todo_collect", {})
+		return "Yuk sebutkan 3 hal cepat untuk hari ini (pisahkan dengan koma)."
 
 	# Hobi/minat
 	if any_in(["hobi", "suka apa", "minat kamu"]):
@@ -548,6 +576,53 @@ def generate_response_from_context(user_input):
 	st = small_talk_response(user_input_lower)
 	if st:
 		return st
+
+	# 0d. Handle pending follow-up (yes/no or choices)
+	pending = memory_get_pending()
+	if pending:
+		kind = pending.get("kind")
+		affirm = ["iya", "ya", "y", "udah", "sudah", "siap", "ok", "oke", "okey", "sip", "done", "iyap", "yoi"]
+		neg = ["belum", "tidak", "ga", "gak", "nggak", "enggak", "no"]
+		if kind in ("ngopi_check", "makan_check"):
+			if any(w in user_input_lower for w in affirm):
+				memory_clear_pending()
+				if kind == "ngopi_check":
+					return "Mantap, semoga makin fokus. Lanjut apa, Bos: trading, coding, atau santai?"
+				else:
+					return "Sip, perut aman. Lanjut mau ngapain, Bos?"
+			elif any(w in user_input_lower for w in neg):
+				memory_clear_pending()
+				if kind == "ngopi_check":
+					return "Baik, jangan lupa rehat dan ngopi kalau sempat. Kita bahas apa dulu sekarang?"
+				else:
+					return "Jangan lupa makan dulu ya Bos. Sambil nunggu, mau bahas trading ringan atau coding?"
+			else:
+				# Not clear, ask again briefly
+				return "Maksudnya sudah atau belum, Bos?"
+		elif kind == "choose_menu":
+			memory_clear_pending()
+			if any(w in user_input_lower for w in ["trading", "xau", "forex", "emas"]):
+				return "Siap. Mau analisis XAU/USD, bahas setup, atau tanya indikator tertentu?"
+			if any(w in user_input_lower for w in ["coding", "ngoding", "python", "termux"]):
+				return "Gas coding. Mau mulai dari apa, Bos: script Termux, bot trading, atau utilitas kecil?"
+			if any(w in user_input_lower for w in ["bisnis", "kelapa", "dropship"]):
+				return "Oke. Bahas strategi bisnis kelapa/dropship atau optimasi operasional dulu?"
+			if any(w in user_input_lower for w in ["santai", "ngopi", "cerita"]):
+				return "Santai juga perlu. Bos mau cerita apa?"
+			# no clear choice
+			memory_set_pending("choose_menu", {})
+			return "Pilih ya Bos: trading, coding, bisnis, atau santai."
+		elif kind == "todo_collect":
+			# parse comma-separated list
+			items = [i.strip() for i in user_input.split(",") if i.strip()]
+			memory_clear_pending()
+			if items:
+				for it in items[:5]:
+					memory_add_fact(f"TODO: {it}", tags=["todo"])
+				return "Siap. Sudah kucatat. Mau kuingatkan lagi nanti?"
+			else:
+				memory_set_pending("todo_collect", {})
+				return "Coba tulis lagi dengan koma ya Bos. Contoh: bayar tagihan, cek chart, kirim email"
 
 	# 1. Cek pertanyaan yang mengacu ke topik aktif (gunakan multi-sumber)
 	if any(user_input_lower.startswith(prefix) for prefix in [

@@ -4,53 +4,43 @@
   "riwayat": [
     {
       "speaker": "Imam",
-      "text": "status",
-      "ts": "2025-08-14 04:17:35"
-    },
-    {
-      "speaker": "Imam",
-      "text": "project set trading XAU/USD harian",
-      "ts": "2025-08-14 04:17:35"
-    },
-    {
-      "speaker": "Imam",
-      "text": "ingat bos suka kopi pahit",
-      "ts": "2025-08-14 04:17:35"
-    },
-    {
-      "speaker": "Imam",
-      "text": "memori?",
-      "ts": "2025-08-14 04:17:35"
-    },
-    {
-      "speaker": "Imam",
-      "text": "apa itu EMA 50?",
-      "ts": "2025-08-14 04:17:35"
+      "text": "udah makan?",
+      "ts": "2025-08-14 04:23:21"
     },
     {
       "speaker": "Yayat",
-      "text": "Bos, EMA 50 itu adalah Exponential Moving Average dengan periode 50. Jadi, ini adalah indikator yang menghitung rata-rata harga dalam 50 periode terakhir, tapi lebih memberi bobot pada harga terkini. Cocok buat ngeliat tren jangka menengah, jadi bisa bantu Bos dalam ngambil keputusan trading. Kapan mau coba pakai? ☕📈",
-      "ts": "2025-08-14 04:17:37"
+      "text": "Belum, Bos. Tapi siap-siap buat ngemil sambil nunggu trading. Bos udah makan? 😄🍽️",
+      "ts": "2025-08-14 04:23:24"
     },
     {
       "speaker": "Imam",
-      "text": "set temp 0.9",
-      "ts": "2025-08-14 04:17:37"
+      "text": "udah yat",
+      "ts": "2025-08-14 04:23:24"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Mantap, Bos! Semoga makannya enak. Ada yang mau dibahas seputar trading atau bisnis hari ini? 😄📈",
+      "ts": "2025-08-14 04:23:25"
     },
     {
       "speaker": "Imam",
-      "text": "status",
-      "ts": "2025-08-14 04:17:37"
+      "text": "trading",
+      "ts": "2025-08-14 04:23:25"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Baik, Bos! Mau fokus ke XAU/USD atau forex lainnya? Atau ada strategi tertentu yang ingin dibahas? 📊✨",
+      "ts": "2025-08-14 04:23:26"
     },
     {
       "speaker": "Imam",
       "text": "keluar",
-      "ts": "2025-08-14 04:17:37"
+      "ts": "2025-08-14 04:23:26"
     },
     {
       "speaker": "Yayat",
-      "text": "Bye Bos, jangan lupa istirahat. Yayat tetap standby!",
-      "ts": "2025-08-14 04:17:37"
+      "text": "Selamat istirahat Bos Imam, Yayat izin pamit.",
+      "ts": "2025-08-14 04:23:26"
     }
   ]
 }

@@ -1244,6 +1244,11 @@ def get_wikipedia_sections(title: str, lang: str = "id"):
 
 def prepare_wiki_session(title: str, lang: str = "id"):
 	sections = get_wikipedia_sections(title, lang=lang)
+	if not sections:
+		# Fallback: use summary as a single section if mobile-sections unavailable
+		sum_info = get_wikipedia_summary(title, lang=lang)
+		if sum_info and sum_info.get("extract"):
+			sections = [{"title": sum_info.get("title") or title, "text": sum_info.get("extract") or ""}]
 	log_context["wiki_session"] = {
 		"title": title,
 		"lang": lang,
@@ -1272,6 +1277,50 @@ def wiki_search_then_summary(query: str, lang: str = "id"):
 	best = results[0]
 	info = get_wikipedia_summary(best["title"], lang=lang)
 	return info
+
+
+def ringkas_wiki(max_points: int = 3) -> str:
+	sess = log_context.get("wiki_session") or {}
+	sections = sess.get("sections") or []
+	if not sections:
+		return "Belum ada sesi wiki aktif, Bos. Coba 'wiki <topik>' dulu."
+	# Take first N meaningful sentences from first few sections
+	points = []
+	for sec in sections:
+		text = (sec.get("text") or "").strip()
+		if not text:
+			continue
+		sents = [s.strip() for s in text.split('.') if len(s.strip()) > 0]
+		for s in sents:
+			if len(points) < max_points:
+				points.append("- " + s + ".")
+			else:
+				break
+		if len(points) >= max_points:
+			break
+	return "Ringkasan singkat:\n" + "\n".join(points)
+
+
+def tanya_wiki(pertanyaan: str) -> str:
+	sess = log_context.get("wiki_session") or {}
+	sections = sess.get("sections") or []
+	if not sections:
+		return "Belum ada sesi wiki aktif, Bos. Coba 'wiki <topik>' dulu."
+	qt = expand_query_tokens(_tokenize(pertanyaan))
+	best = None
+	best_score = 0.0
+	for sec in sections:
+		tokens = _tokenize(sec.get("text") or "")
+		s = _bm25_score(qt, tokens)
+		if s > best_score:
+			best_score = s
+			best = sec
+	if not best or best_score <= 0:
+		return "Tidak menemukan bagian yang cocok di artikel wiki aktif."
+	snippet = (best.get("text") or "").strip()
+	if len(snippet) > 700:
+		snippet = snippet[:700] + "..."
+	return f"Jawaban dari bagian '{best.get('title')}'\n{snippet}"
 
 
 # --- Bagian Utama Skrip ---
@@ -1352,6 +1401,8 @@ if __name__ == "__main__":
 				simpan_log("Yayat", teks)
 				update_context("Yayat", teks)
 				set_topik_aktif_dari_wiki(info)
+				# Siapkan sesi wiki agar bisa 'ringkas wiki' dan 'tanya wiki'
+				prepare_wiki_session(info["title"], lang=info.get("lang", "id"))
 			else:
 				teks = "Maaf Bos, Yayat gak nemu ringkasan di Wikipedia."
 				yayat_suara(teks)
@@ -1443,6 +1494,21 @@ if __name__ == "__main__":
 					print(f"- {h.get('text')}")
 				else:
 					print(f"- {h.get('speaker')}: {h.get('text')}")
+			continue
+		elif pesan.startswith("ringkas wiki"):
+			teks = ringkas_wiki()
+			yayat_suara(teks)
+			print("Yayat:", teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
+			continue
+		elif pesan.startswith("tanya wiki "):
+			pertanyaan = pesan.replace("tanya wiki", "").strip()
+			teks = tanya_wiki(pertanyaan)
+			yayat_suara(teks)
+			print("Yayat:", teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
 			continue
 
 		if pesan in ["keluar", "exit", "quit", "shut down system"]:

@@ -4,41 +4,57 @@
   "riwayat": [
     {
       "speaker": "Imam",
-      "text": "wiki index Indonesia",
-      "ts": "2025-08-14 04:52:42"
+      "text": "wiki indonesia",
+      "ts": "2025-08-14 04:56:02"
     },
     {
       "speaker": "Yayat",
-      "text": "Maaf Bos, Yayat gak nemu ringkasan di Wikipedia.",
-      "ts": "2025-08-14 04:52:43"
+      "text": "Indonesia: Indonesia, dengan nama resmi Republik Indonesia, adalah sebuah negara di Asia Tenggara dan Oseania, antara Samudra Hindia dan Samudra Pasifik. Indonesia merupakan negara lintas benua karena diapit oleh benua Asia dan Australia (Oseania). Selain itu, Indonesia juga menjadi wilayah pertemuan Samudra Pasifik dan Samudra Hindia, serta menjadi salah satu negara yang dilalui oleh khatulistiwa. Indonesia memiliki luas wilayah sebesar 1.904.569 km², sehingga menjadikannya sebagai negara terluas ke-14 dunia. (sumber: Wikipedia Indonesia)",
+      "ts": "2025-08-14 04:56:02"
     },
     {
       "speaker": "Imam",
-      "text": "cari memori khatulistiwa",
-      "ts": "2025-08-14 04:52:43"
-    },
-    {
-      "speaker": "Imam",
-      "text": "wiki clear Indonesia",
-      "ts": "2025-08-14 04:52:43"
+      "text": "ringkas wiki",
+      "ts": "2025-08-14 04:56:02"
     },
     {
       "speaker": "Yayat",
-      "text": "Maaf Bos, Yayat gak nemu ringkasan di Wikipedia.",
-      "ts": "2025-08-14 04:52:45"
+      "text": "Ringkasan singkat:\n- Indonesia, dengan nama resmi Republik Indonesia, adalah sebuah negara di Asia Tenggara dan Oseania, antara Samudra Hindia dan Samudra Pasifik.\n- Indonesia merupakan negara lintas benua karena diapit oleh benua Asia dan Australia (Oseania).\n- Selain itu, Indonesia juga menjadi wilayah pertemuan Samudra Pasifik dan Samudra Hindia, serta menjadi salah satu negara yang dilalui oleh khatulistiwa.",
+      "ts": "2025-08-14 04:56:02"
+    },
+    {
+      "speaker": "Imam",
+      "text": "tanya wiki luas wilayahnya berapa",
+      "ts": "2025-08-14 04:56:02"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Jawaban dari bagian 'Indonesia'\nIndonesia, dengan nama resmi Republik Indonesia, adalah sebuah negara di Asia Tenggara dan Oseania, antara Samudra Hindia dan Samudra Pasifik. Indonesia merupakan negara lintas benua karena diapit oleh benua Asia dan Australia (Oseania). Selain itu, Indonesia juga menjadi wilayah pertemuan Samudra Pasifik dan Samudra Hindia, serta menjadi salah satu negara yang dilalui oleh khatulistiwa. Indonesia memiliki luas wilayah sebesar 1.904.569 km², sehingga menjadikannya sebagai negara terluas ke-14 dunia.",
+      "ts": "2025-08-14 04:56:02"
     },
     {
       "speaker": "Imam",
       "text": "keluar",
-      "ts": "2025-08-14 04:52:45"
+      "ts": "2025-08-14 04:56:02"
     },
     {
       "speaker": "Yayat",
       "text": "Yayat keluar dulu ya Bos. Panggil aja kapan pun di butuhkan.",
-      "ts": "2025-08-14 04:52:45"
+      "ts": "2025-08-14 04:56:02"
     }
   ],
   "topik_aktif": "Indonesia",
   "wiki_url": "https://id.wikipedia.org/wiki/Indonesia",
-  "wiki_lang": "id"
+  "wiki_lang": "id",
+  "wiki_session": {
+    "title": "Indonesia",
+    "lang": "id",
+    "sections": [
+      {
+        "title": "Indonesia",
+        "text": "Indonesia, dengan nama resmi Republik Indonesia, adalah sebuah negara di Asia Tenggara dan Oseania, antara Samudra Hindia dan Samudra Pasifik. Indonesia merupakan negara lintas benua karena diapit oleh benua Asia dan Australia (Oseania). Selain itu, Indonesia juga menjadi wilayah pertemuan Samudra Pasifik dan Samudra Hindia, serta menjadi salah satu negara yang dilalui oleh khatulistiwa. Indonesia memiliki luas wilayah sebesar 1.904.569 km², sehingga menjadikannya sebagai negara terluas ke-14 dunia."
+      }
+    ],
+    "cursor": 0
+  }
 }

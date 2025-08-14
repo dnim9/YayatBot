@@ -5,32 +5,47 @@
     {
       "speaker": "Imam",
       "text": "pintar on",
-      "ts": "2025-08-14 03:22:31"
+      "ts": "2025-08-14 03:28:48"
     },
     {
       "speaker": "Imam",
       "text": "status",
-      "ts": "2025-08-14 03:22:31"
+      "ts": "2025-08-14 03:28:48"
     },
     {
       "speaker": "Imam",
-      "text": "lagi apa yat?",
-      "ts": "2025-08-14 03:22:31"
+      "text": "set temp 0.8",
+      "ts": "2025-08-14 03:28:48"
+    },
+    {
+      "speaker": "Imam",
+      "text": "set model gpt-4o-mini",
+      "ts": "2025-08-14 03:28:48"
+    },
+    {
+      "speaker": "Imam",
+      "text": "status",
+      "ts": "2025-08-14 03:28:48"
+    },
+    {
+      "speaker": "Imam",
+      "text": "apa itu EMA 50 dalam trading?",
+      "ts": "2025-08-14 03:28:48"
     },
     {
       "speaker": "Yayat",
-      "text": "Aku lagi siap bantu kamu, ada yang bisa aku bantu?",
-      "ts": "2025-08-14 03:22:32"
+      "text": "Baik Imam, EMA 50 itu adalah Exponential Moving Average dengan periode 50. Ini digunakan untuk menghaluskan data harga selama 50 periode terakhir sehingga kamu bisa melihat tren lebih jelas. Biasanya, EMA ini membantu trader menentukan arah pasar. Kalau harga berada di atas EMA 50, bisa jadi sinyal bullish, sedangkan di bawahnya bisa jadi sinyal bearish. Gimana, ada yang mau ditanya lebih lanjut?",
+      "ts": "2025-08-14 03:28:50"
     },
     {
       "speaker": "Imam",
       "text": "keluar",
-      "ts": "2025-08-14 03:22:32"
+      "ts": "2025-08-14 03:28:50"
     },
     {
       "speaker": "Yayat",
-      "text": "Bye Bos, jangan lupa istirahat. Yayat tetap standby!",
-      "ts": "2025-08-14 03:22:32"
+      "text": "Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.",
+      "ts": "2025-08-14 03:28:50"
     }
   ]
 }

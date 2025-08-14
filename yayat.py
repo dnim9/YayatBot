@@ -53,6 +53,14 @@ def _load_env_from_file(path: str):
 # Load .env beside this file
 _load_env_from_file(os.path.join(os.path.dirname(__file__), ".env"))
 
+# Load LLM persona config
+LLM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "llm_config.json")
+try:
+	with open(LLM_CONFIG_PATH, "r", encoding="utf-8") as _cf:
+		LLM_CONFIG = json.load(_cf)
+except Exception:
+	LLM_CONFIG = None
+
 _show_banner()
 time.sleep(1)  # Jeda waktu agar tampilan terlihat
 
@@ -743,15 +751,62 @@ if __name__ == "__main__":
 				f" Jika pertanyaan pakai rujukan tanpa menyebut topik baru, gunakan topik aktif: {aktif}. "
 				"Jika user menyebut topik baru eksplisit (misal 'apa itu kulkas'), abaikan topik aktif."
 			)
+		# Build persona-aware system prompt
+		def _build_persona(prompt_text: str) -> str:
+			name = (LLM_CONFIG or {}).get("name") or "YayatBot-LLM"
+			role = (LLM_CONFIG or {}).get("role") or "AI Assistant"
+			traits = ", ".join((LLM_CONFIG or {}).get("personality", {}).get("core_traits", []) or [])
+			styles = (LLM_CONFIG or {}).get("personality", {}).get("speech_styles", {})
+			formal = styles.get("formal_mode", {}) if isinstance(styles, dict) else {}
+			casual = styles.get("casual_mode", {}) if isinstance(styles, dict) else {}
+			formal_triggers = [t.lower() for t in (formal.get("trigger") or [])]
+			casual_triggers = [t.lower() for t in (casual.get("trigger") or [])]
+			is_formal = any(k in prompt_text.lower() for k in formal_triggers)
+			is_casual = any(k in prompt_text.lower() for k in casual_triggers)
+			# default: formal jika teknis; selain itu casual
+			mode = "formal" if is_formal and not is_casual else ("casual" if is_casual else "casual")
+			address_user = "Imam" if mode == "formal" else "Bos"
+			if isinstance(casual.get("address_user"), list) and mode == "casual":
+				address_user = casual.get("address_user")[0] or address_user
+			# time aware
+			if (LLM_CONFIG or {}).get("context_awareness", {}).get("adjust_response_based_on_time"):
+				h = datetime.datetime.now().hour
+				waktu = "pagi" if 4 <= h < 11 else ("siang" if h < 15 else ("sore" if h < 18 else "malam"))
+				time_hint = f" Sesuaikan sapaan untuk waktu {waktu}."
+			else:
+				time_hint = ""
+			know = (LLM_CONFIG or {}).get("knowledge_focus", [])
+			rules = (LLM_CONFIG or {}).get("rules", {})
+			examples = (LLM_CONFIG or {}).get("examples", {})
+			formal_ex = examples.get("formal")
+			casual_ex = examples.get("casual")
+			mode_tone = formal.get("tone") if mode == "formal" else casual.get("tone")
+			return (
+				f"Nama: {name}. Peran: {role}. Sifat: {traits}. Mode: {mode} (tone: {mode_tone}). "
+				f"Panggil user: {address_user}. Fokus pengetahuan: {', '.join(know)}. "
+				f"Aturan: no-wrong-info={rules.get('never_give_wrong_info', True)}, "
+				f"step-by-step={rules.get('calculate_step_by_step', True)}, humor-ringan={rules.get('keep_humor_light', True)}, "
+				f"samakan-tone={rules.get('always_match_user_tone', True)}."
+				+ time_hint
+				+ (f" Contoh formal: {formal_ex}." if formal_ex else "")
+				+ (f" Contoh santai: {casual_ex}." if casual_ex else "")
+			)
+		persona_prompt = _build_persona(prompt_text)
 		system_prompt = (
 			"Kamu adalah Yayat, asisten pribadi yang sopan, ringan, dan helpful. "
 			"Jawab singkat, langsung inti, gunakan bahasa Indonesia santai sopan. "
 			"Pertahankan konteks percakapan, pahami maksud implisit, dan hindari mengarang fakta."
 			+ aktif_info
+			+ " "
+			+ persona_prompt
 		)
+		# Inference params (allow runtime override)
+		temp = float(os.environ.get("YAYAT_LLM_TEMP", "0.6"))
+		max_tok = int(os.environ.get("YAYAT_LLM_MAXTOK", "320"))
+		# Insert current user message
 		messages = history + [{"role": "user", "content": prompt_text}]
 		try:
-			answer = llm_client.chat(messages, system=system_prompt, temperature=0.6, max_tokens=320)
+			answer = llm_client.chat(messages, system=system_prompt, temperature=temp, max_tokens=max_tok)
 			return answer
 		except Exception:
 			return None
@@ -790,6 +845,28 @@ if __name__ == "__main__":
 				)
 			)
 			print(f"Yayat: LLM tersedia={LLM_AVAILABLE}, mode={'aktif' if use_llm else 'nonaktif'}, provider={provider}.")
+			continue
+		elif pesan.startswith("set temp "):
+			val = pesan.replace("set temp", "").strip()
+			try:
+				t = float(val)
+				os.environ["YAYAT_LLM_TEMP"] = str(max(0.0, min(1.5, t)))
+				print(f"Yayat: Temperatur LLM diset ke {os.environ['YAYAT_LLM_TEMP']}.")
+			except Exception:
+				print("Yayat: Nilai temperatur tidak valid. Contoh: set temp 0.8")
+			continue
+		elif pesan.startswith("set model "):
+			name = pesan.replace("set model", "").strip()
+			if not name:
+				print("Yayat: Model kosong. Contoh: set model gpt-4o-mini atau llama3.1:8b-instruct")
+				continue
+			# Heuristic: if includes ':' assume Ollama, else OpenAI
+			if ":" in name:
+				os.environ["YAYAT_OLLAMA_MODEL"] = name
+				print(f"Yayat: Model Ollama diset ke {name}.")
+			else:
+				os.environ["YAYAT_LLM_MODEL"] = name
+				print(f"Yayat: Model OpenAI/LMStudio diset ke {name}.")
 			continue
 		elif pesan.startswith("tambah alarm"):
 			waktu = pesan.replace("tambah alarm", "").strip()

@@ -29,6 +29,21 @@ def _http_post(url: str, headers: Dict[str, str], body: dict) -> Optional[dict]:
 		return None
 
 
+def _http_get(url: str, headers: Dict[str, str] = None) -> Optional[dict]:
+	headers = headers or {}
+	req = urllib.request.Request(url, headers=headers, method="GET")
+	context = ssl.create_default_context()
+	try:
+		with urllib.request.urlopen(req, timeout=_DEFAULT_TIMEOUT, context=context) as resp:
+			resp_data = resp.read().decode("utf-8")
+			try:
+				return json.loads(resp_data)
+			except Exception:
+				return {"raw": resp_data}
+	except Exception:
+		return None
+
+
 # Provider: OpenAI (or OpenAI-compatible endpoints)
 
 def _chat_openai(messages: List[Dict], system: Optional[str], temperature: float, max_tokens: int) -> Optional[str]:
@@ -148,3 +163,43 @@ def chat(messages: List[Dict], system: Optional[str] = None, temperature: float 
 	if ans and ans.strip():
 		return ans.strip()
 	return None
+
+
+def chat_local(messages: List[Dict], system: Optional[str] = None, temperature: float = 0.6, max_tokens: int = 400) -> Optional[str]:
+	"""
+	Prefer local providers (Ollama, then LM Studio). Fallback to OpenAI if available.
+	"""
+	# Ollama first
+	ans = _chat_ollama(messages, system, temperature, max_tokens)
+	if ans and ans.strip():
+		return ans.strip()
+	# LM Studio next
+	ans = _chat_lmstudio(messages, system, temperature, max_tokens)
+	if ans and ans.strip():
+		return ans.strip()
+	# OpenAI fallback
+	if os.environ.get("OPENAI_API_KEY"):
+		ans = _chat_openai(messages, system, temperature, max_tokens)
+		if ans and ans.strip():
+			return ans.strip()
+	return None
+
+
+def probe() -> Dict[str, object]:
+	"""Check local providers availability (Ollama/LM Studio) and OpenAI key.
+	Return dict: {provider: 'ollama'|'lmstudio'|'openai'|'none', available: bool}
+	"""
+	# Check Ollama
+	base = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+	res = _http_get(f"{base}/api/tags")
+	if res is not None:
+		return {"provider": "ollama", "available": True}
+	# Check LM Studio
+	lm = os.environ.get("LMSTUDIO_BASE_URL", "http://localhost:1234/v1")
+	res = _http_get(f"{lm}/models")
+	if res is not None:
+		return {"provider": "lmstudio", "available": True}
+	# Check OpenAI key
+	if os.environ.get("OPENAI_API_KEY"):
+		return {"provider": "openai", "available": True}
+	return {"provider": "none", "available": False}

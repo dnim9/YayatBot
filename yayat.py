@@ -256,26 +256,37 @@ def get_topik_aktif() -> str:
 
 
 def resolve_followup_query(user_text: str) -> str:
-	"""Jika pertanyaan mengandung rujukan seperti 'dia/itu/tersebut', gunakan topik_aktif."""
+	"""Jika pertanyaan mengandung rujukan seperti 'dia/itu/tersebut', gunakan topik_aktif.
+	Hindari mengganti jika user menyebut topik eksplisit, misal: 'apa itu kulkas'."""
 	t = user_text.strip().lower()
 	topik = get_topik_aktif()
 	if not topik:
 		return user_text
 
-	referensial = ["dia", "ia", "itu", "tersebut", "tsb", "yang tadi", "yang barusan"]
-	if any(r in t for r in referensial):
-		# Template sederhana berdasarkan kata tanya
-		if t.startswith("siapa"):
-			return f"siapa {topik}"
+	# Jika bentuknya 'apa itu <sesuatu>' atau 'siapa itu <nama>', anggap eksplisit → jangan diganti
+	if t.startswith("apa itu ") or t.startswith("siapa itu "):
+		return user_text
+	# Kasus 'apa itu' tanpa objek → rujuk ke topik aktif
+	if t in ("apa itu", "siapa itu"):
 		if t.startswith("apa"):
 			return f"apa {topik}"
-		if t.startswith("kapan"):
+		else:
+			return f"siapa {topik}"
+
+	referensial_tokens = {"dia", "ia", "itu", "tersebut", "tsb"}
+	tokens = t.split()
+	# Jika kalimat berakhir dengan kata rujukan (tanpa objek setelahnya) atau mengandung frasa rujukan umum
+	if tokens and (tokens[-1] in referensial_tokens or any(phr in t for phr in ["yang tadi", "yang barusan"])):
+		if tokens[0].startswith("siapa"):
+			return f"siapa {topik}"
+		if tokens[0].startswith("apa"):
+			return f"apa {topik}"
+		if tokens[0].startswith("kapan"):
 			return f"kapan {topik}"
-		if t.startswith("dimana") or t.startswith("di mana"):
+		if tokens[0].startswith("dimana") or t.startswith("di mana"):
 			return f"di mana {topik}"
-		if t.startswith("bagaimana"):
+		if tokens[0].startswith("bagaimana"):
 			return f"bagaimana {topik}"
-		# default
 		return f"{t} {topik}"
 	return user_text
 
@@ -315,7 +326,7 @@ def generate_response_from_context(user_input):
 			waktu = "sore"
 		else:
 			waktu = "malam"
-		return f"Selamat {waktu}, Bos Imam! Ada yang bisa Yayat bantu?"
+		return f"Selamat {waktu}, Bos Imam. Ada yang bisa Yayat bantu?"
 
 	# 1. Cek pertanyaan yang mengacu ke topik aktif (gunakan multi-sumber)
 	if any(user_input_lower.startswith(prefix) for prefix in [
@@ -722,7 +733,12 @@ if __name__ == "__main__":
 			role = "assistant" if turn["speaker"] == "Yayat" else "user"
 			history.append({"role": role, "content": turn["text"]})
 		aktif = log_context.get("topik_aktif")
-		aktif_info = f" Topik aktif: {aktif}." if aktif else ""
+		aktif_info = ""
+		if aktif:
+			aktif_info = (
+				f" Jika pertanyaan pakai rujukan tanpa menyebut topik baru, gunakan topik aktif: {aktif}. "
+				"Jika user menyebut topik baru eksplisit (misal 'apa itu kulkas'), abaikan topik aktif."
+			)
 		system_prompt = (
 			"Kamu adalah Yayat, asisten pribadi yang sopan, ringan, dan helpful. "
 			"Jawab singkat, langsung inti, gunakan bahasa Indonesia santai sopan. "

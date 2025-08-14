@@ -1099,6 +1099,115 @@ def retrieve_from_memory(query: str, top_k: int = 3) -> list:
 	return [c[1] for c in candidates[:top_k]]
 
 
+def _strip_html(html: str) -> str:
+	try:
+		import re
+		text = re.sub(r"<[^>]+>", " ", html or "")
+		text = re.sub(r"\s+", " ", text).strip()
+		return text
+	except Exception:
+		return html or ""
+
+
+def get_wiktionary_definition(term: str, lang: str = "id"):
+	try:
+		encoded = urllib.parse.quote(term.strip().replace(" ", "_"))
+		url = f"https://{lang}.wiktionary.org/api/rest_v1/page/definition/{encoded}"
+		data = _http_get_json(url)
+		if not data:
+			return None
+		# The API returns dict keyed by language codes
+		entries = data.get(lang) or next(iter(data.values()), None)
+		if not entries:
+			return None
+		defs = []
+		for entry in entries:
+			for d in entry.get("definitions", []):
+				val = (d.get("definition") or "").strip()
+				if val:
+					defs.append(val)
+		if not defs:
+			return None
+		teks = defs[0]
+		return {"title": term, "extract": teks, "url": f"https://{lang}.wiktionary.org/wiki/{encoded}", "lang": lang, "source": "Wiktionary"}
+	except Exception:
+		return None
+
+
+def search_wikipedia_pages(query: str, lang: str = "id", limit: int = 5):
+	try:
+		params = urllib.parse.urlencode({"q": query, "limit": str(limit)})
+		url = f"https://{lang}.wikipedia.org/w/rest.php/v1/search/page?{params}"
+		data = _http_get_json(url)
+		if not data:
+			return []
+		pages = data.get("pages") or []
+		results = []
+		for p in pages:
+			title = p.get("title") or p.get("key")
+			if title:
+				desc = (p.get("description") or p.get("excerpt") or "").strip()
+				results.append({"title": title, "description": _strip_html(desc)})
+		return results
+	except Exception:
+		return []
+
+
+def get_wikipedia_sections(title: str, lang: str = "id"):
+	try:
+		encoded = urllib.parse.quote(title.strip().replace(" ", "_"))
+		url = f"https://{lang}.wikipedia.org/api/rest_v1/page/mobile-sections/{encoded}"
+		data = _http_get_json(url)
+		if not data:
+			return []
+		sections = []
+		lead = (data.get("lead") or {}).get("sections") or []
+		for s in lead:
+			text = _strip_html(s.get("text") or "")
+			if text:
+				sections.append({"title": s.get("line") or title, "text": text})
+		remaining = (data.get("remaining") or {}).get("sections") or []
+		for s in remaining:
+			text = _strip_html(s.get("text") or "")
+			if text:
+				sections.append({"title": s.get("line") or title, "text": text})
+		return sections
+	except Exception:
+		return []
+
+
+def prepare_wiki_session(title: str, lang: str = "id"):
+	sections = get_wikipedia_sections(title, lang=lang)
+	log_context["wiki_session"] = {
+		"title": title,
+		"lang": lang,
+		"sections": sections,
+		"cursor": 0,
+	}
+	save_log_context()
+
+
+def wiki_session_next() -> str:
+	sess = log_context.get("wiki_session") or {}
+	sections = sess.get("sections") or []
+	cursor = sess.get("cursor") or 0
+	if cursor >= len(sections):
+		return "Belum ada detail lain, Bos."
+	item = sections[cursor]
+	log_context["wiki_session"]["cursor"] = cursor + 1
+	save_log_context()
+	return f"{item.get('title')}: {item.get('text')[:700]}" + ("..." if len(item.get('text')) > 700 else "")
+
+
+def wiki_search_then_summary(query: str, lang: str = "id"):
+	results = search_wikipedia_pages(query, lang=lang, limit=5)
+	if not results:
+		return None
+	best = results[0]
+	info = get_wikipedia_summary(best["title"], lang=lang)
+	return info
+
+
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
 	# LLM dinonaktifkan (default OFF permanen)
@@ -1212,6 +1321,36 @@ if __name__ == "__main__":
 		elif pesan in ["memori?", "memory?", "ingatanku", "ringkas memori"]:
 			print("Yayat:")
 			print(memory_quick_summary())
+			continue
+		elif pesan.startswith("wiki cari "):
+			q = pesan.replace("wiki cari", "").strip()
+			info = wiki_search_then_summary(q, lang="id")
+			if info:
+				set_topik_aktif_dari_wiki(info)
+				prepare_wiki_session(info["title"], lang=info.get("lang", "id"))
+				teks = f"{info['title']}: {info['extract']} (sumber: Wikipedia {info['lang']})"
+				print("Yayat:", teks)
+				simpan_log("Yayat", teks)
+				update_context("Yayat", teks)
+			else:
+				print("Yayat: Tidak ketemu hasil yang cocok di Wikipedia.")
+			continue
+		elif pesan in ["wiki lanjut", "lanjut wiki", "detail wiki"]:
+			teks = wiki_session_next()
+			print("Yayat:", teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
+			continue
+		elif pesan.startswith("arti ") or pesan.startswith("definisi "):
+			term = pesan.split(" ", 1)[1].strip()
+			res = get_wiktionary_definition(term, lang="id")
+			if res:
+				teks = f"{res['title']}: {res['extract']} (sumber: {res['source']})"
+				print("Yayat:", teks)
+				simpan_log("Yayat", teks)
+				update_context("Yayat", teks)
+			else:
+				print("Yayat: Belum nemu arti di Wiktionary, Bos.")
 			continue
 
 		if pesan in ["keluar", "exit", "quit", "shut down system"]:

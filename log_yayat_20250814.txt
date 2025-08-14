@@ -7,3 +7,8 @@
 [01:55:18] Yayat: Selamat istirahat Bos Imam, Yayat izin pamit.
 [01:55:35] Imam: keluar
 [01:55:35] Yayat: Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.
+[02:47:21] Imam: pintar on
+[02:47:21] Imam: apa itu machine learning?
+[02:47:23] Yayat: Machine learning adalah cabang dari kecerdasan buatan yang fokus pada pengembangan algoritma dan model yang memungkinkan komputer belajar dari data. Jadi, komputer bisa mengenali pola dan membuat prediksi tanpa harus diprogram secara eksplisit untuk setiap tugas. Contohnya, sistem rekomendasi di platform streaming atau pengenalan wajah di foto.
+[02:47:23] Imam: keluar
+[02:47:23] Yayat: Bye Bos, jangan lupa istirahat. Yayat tetap standby!

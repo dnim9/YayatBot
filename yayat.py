@@ -28,6 +28,31 @@ def _show_banner():
 	else:
 		print("YAYATBOT")
 
+# Simple .env loader so we can keep API keys out of code
+
+def _load_env_from_file(path: str):
+	try:
+		if not os.path.exists(path):
+			return
+		with open(path, "r", encoding="utf-8") as f:
+			for raw in f:
+				line = raw.strip()
+				if not line or line.startswith("#"):
+					continue
+				if "=" not in line:
+					continue
+				key, val = line.split("=", 1)
+				key = key.strip()
+				val = val.strip().strip('"').strip("'")
+				if key and key not in os.environ:
+					os.environ[key] = val
+	except Exception:
+		# Ignore env loading errors silently
+		pass
+
+# Load .env beside this file
+_load_env_from_file(os.path.join(os.path.dirname(__file__), ".env"))
+
 _show_banner()
 time.sleep(1)  # Jeda waktu agar tampilan terlihat
 

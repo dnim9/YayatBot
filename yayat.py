@@ -103,12 +103,13 @@ def save_memory():
 		json.dump(memory, f, indent=2, ensure_ascii=False)
 
 
-def memory_add_fact(text: str, tags=None):
+def memory_add_fact(text: str, tags=None, meta=None):
 	if not text:
 		return
 	entry = {
 		"text": text.strip(),
 		"tags": tags or [],
+		"meta": meta or {},
 		"ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 	}
 	memory.setdefault("facts", []).append(entry)
@@ -1018,6 +1019,8 @@ def normalize_text(teks: str) -> str:
 	if not teks:
 		return ""
 	t = teks.lower().strip()
+	# Normalize spaced forms
+	t = t.replace("di mana", "dimana").replace("ke mana", "kemana")
 	# Replace common slang/shortcuts
 	replacements = {
 		"gk": "tidak",
@@ -1054,9 +1057,38 @@ def normalize_text(teks: str) -> str:
 	t = " ".join(t.split())
 	return t
 
+# --- Synonyms and token normalization ---
+EQUIV_SETS = [
+	{"apa", "arti", "maksud", "pengertian", "definisi", "meaning"},
+	{"bagaimana", "gimana", "gmn"},
+	{"dimana", "kemana", "mana"},
+	{"siapa"},
+]
+
+def _normalize_token_simple(tok: str) -> str:
+	# strip common clitics/suffix
+	for suf in ["nya", "kah", "lah", "tah"]:
+		if tok.endswith(suf) and len(tok) > len(suf) + 2:
+			return tok[: -len(suf)]
+	return tok
+
+def expand_query_tokens(tokens: list) -> list:
+	expanded = set()
+	for t in tokens:
+		tn = _normalize_token_simple(t)
+		added = False
+		for s in EQUIV_SETS:
+			if tn in s:
+				expanded |= s
+				added = True
+				break
+		if not added:
+			expanded.add(tn)
+	return list(expanded)
+
 
 def _tokenize(text: str) -> list:
-	return [w for w in normalize_text(text).split() if len(w) > 1]
+	return [_normalize_token_simple(w) for w in normalize_text(text).split() if len(w) > 1]
 
 
 def _bm25_score(query_tokens: list, doc_tokens_list: list) -> float:
@@ -1083,13 +1115,13 @@ def _bm25_score(query_tokens: list, doc_tokens_list: list) -> float:
 
 def retrieve_from_memory(query: str, top_k: int = 3) -> list:
 	"""Return top facts/messages matching query using simple BM25-ish scoring."""
-	qt = _tokenize(query)
+	qt = expand_query_tokens(_tokenize(query))
 	candidates = []
 	for f in memory.get("facts", []):
 		tokens = _tokenize(f.get("text", ""))
 		s = _bm25_score(qt, tokens)
 		if s > 0:
-			candidates.append((s, {"type": "fact", "text": f.get("text"), "ts": f.get("ts")}))
+			candidates.append((s, {"type": "fact", "text": f.get("text"), "ts": f.get("ts"), "meta": f.get("meta", {}), "tags": f.get("tags", [])}))
 	for m in memory.get("last_messages", [])[-40:]:
 		tokens = _tokenize(m.get("text", ""))
 		s = _bm25_score(qt, tokens)
@@ -1097,6 +1129,40 @@ def retrieve_from_memory(query: str, top_k: int = 3) -> list:
 			candidates.append((s, {"type": "message", "speaker": m.get("speaker"), "text": m.get("text"), "ts": m.get("ts")}))
 	candidates.sort(key=lambda x: x[0], reverse=True)
 	return [c[1] for c in candidates[:top_k]]
+
+# --- Wiki indexing into memory ---
+def index_wiki_title_into_memory(title: str, lang: str = "id", max_sections: int = 12, max_chars: int = 500):
+	sections = get_wikipedia_sections(title, lang=lang)
+	if not sections:
+		return 0
+	url = f"https://{lang}.wikipedia.org/wiki/{urllib.parse.quote(title.strip().replace(' ', '_'))}"
+	# Avoid duplicate indexing if already present
+	marker = f"wiki:{title.lower()}"
+	if any(marker in (f.get("tags") or []) for f in memory.get("facts", [])):
+		return 0
+	count = 0
+	for s in sections[:max_sections]:
+		text = (s.get("text") or "").strip()
+		if not text:
+			continue
+		clip = text[:max_chars]
+		memory_add_fact(
+			f"WIKI[{title}] {s.get('title')}: {clip}",
+			tags=["wiki", marker],
+			meta={"source": "wikipedia", "title": title, "lang": lang, "url": url, "section": s.get("title")},
+		)
+		count += 1
+	return count
+
+
+def clear_wiki_index_from_memory(title: str):
+	marker = f"wiki:{(title or '').lower()}"
+	facts = memory.get("facts", [])
+	new_facts = [f for f in facts if marker not in (f.get("tags") or [])]
+	removed = len(facts) - len(new_facts)
+	memory["facts"] = new_facts
+	save_memory()
+	return removed
 
 
 def _strip_html(html: str) -> str:
@@ -1351,6 +1417,32 @@ if __name__ == "__main__":
 				update_context("Yayat", teks)
 			else:
 				print("Yayat: Belum nemu arti di Wiktionary, Bos.")
+			continue
+		elif pesan.startswith("wiki index "):
+			title = pesan.replace("wiki index", "").strip()
+			if not title:
+				print("Yayat: Judul kosong, Bos.")
+				continue
+			added = index_wiki_title_into_memory(title, lang="id")
+			print(f"Yayat: Sudah diindeks {added} bagian dari Wikipedia untuk '{title}'.")
+			continue
+		elif pesan.startswith("wiki clear "):
+			title = pesan.replace("wiki clear", "").strip()
+			removed = clear_wiki_index_from_memory(title)
+			print(f"Yayat: {removed} potongan dihapus dari memori untuk '{title}'.")
+			continue
+		elif pesan.startswith("cari memori "):
+			q = pesan.replace("cari memori", "").strip()
+			hits = retrieve_from_memory(q, top_k=5)
+			if not hits:
+				print("Yayat: Tidak ada yang cocok di memori.")
+				continue
+			print("Yayat: Yang relevan di memori:")
+			for h in hits:
+				if h.get("type") == "fact":
+					print(f"- {h.get('text')}")
+				else:
+					print(f"- {h.get('speaker')}: {h.get('text')}")
 			continue
 
 		if pesan in ["keluar", "exit", "quit", "shut down system"]:

@@ -299,6 +299,24 @@ def save_log_context():
 def generate_response_from_context(user_input):
 	user_input_lower = user_input.lower().strip()
 
+	# 0. Salam/sapaan umum
+	greet_keywords = [
+		"hai", "hi", "hello", "halo", "hay",
+		"assalamualaikum", "assalamu'alaikum",
+		"selamat pagi", "selamat siang", "selamat sore", "selamat malam",
+	]
+	if any(k in user_input_lower for k in greet_keywords):
+		jam = datetime.datetime.now().hour
+		if 4 <= jam < 11:
+			waktu = "pagi"
+		elif 11 <= jam < 15:
+			waktu = "siang"
+		elif 15 <= jam < 18:
+			waktu = "sore"
+		else:
+			waktu = "malam"
+		return f"Selamat {waktu}, Bos Imam! Ada yang bisa Yayat bantu?"
+
 	# 1. Cek pertanyaan yang mengacu ke topik aktif (gunakan multi-sumber)
 	if any(user_input_lower.startswith(prefix) for prefix in [
 		"apa itu", "siapa itu", "apa artinya", "apa maksud", "siapa", "apa", "tentang", "jelaskan", "definisi"
@@ -339,7 +357,11 @@ def generate_response_from_context(user_input):
 	if key in reply:
 		return reply[key]
 
-	# 5. Jika tidak ketemu, ajak user memberi jawaban baru
+	# 5. Jika tidak ketemu, untuk input sangat singkat kasih jawaban ramah standar
+	if len(user_input_lower) <= 3:
+		return "Iya, Bos. Bagaimana bisa ku bantu?"
+
+	# 6. Jika tidak ketemu, ajak user memberi jawaban baru
 	print("Yayat: Belum ada jawaban untuk itu, Bos.")
 	new_reply = input("Masukkan jawaban Yayat untuk ini (ketik 'skip' untuk melewati): ").strip()
 	if new_reply.lower() == "skip" or new_reply == "":
@@ -476,7 +498,7 @@ def deteksi_maksud(teks):
 		return "perintah"
 	elif teks.endswith("?"):
 		return "pertanyaan"
-	elif any(k in teks for k in ["halo", "hay", "assalamualaikum"]):
+	elif any(k in teks for k in ["hai", "hi", "hello", "halo", "hay", "assalamualaikum", "assalamu'alaikum", "selamat pagi", "selamat siang", "selamat sore", "selamat malam"]):
 		return "salam"
 	else:
 		return "random"

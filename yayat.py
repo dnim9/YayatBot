@@ -1813,9 +1813,13 @@ if __name__ == "__main__":
 
 		# Fallback: generator konteks + kamus dinamis
 		else:
-			teks = generate_response_from_context(user_input)
-			yayat_suara(teks)
-			print("Yayat:", teks)
-			simpan_log("Yayat", teks)
-			update_context("Yayat", teks)
+			try:
+				from yayatbot.router import handle_fallback
+				handle_fallback(user_input)
+			except Exception:
+				teks = generate_response_from_context(user_input)
+				yayat_suara(teks)
+				print("Yayat:", teks)
+				simpan_log("Yayat", teks)
+				update_context("Yayat", teks)
 			continue

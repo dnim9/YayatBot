@@ -1440,6 +1440,33 @@ except Exception:
 LOCAL_LM_MODEL = None
 LOCAL_LM_MIN_CORPUS = 20
 
+def seed_kata_ke_memori(jumlah: int) -> int:
+	if jumlah <= 0:
+		return 0
+	# Kumpulan kata umum bahasa Indonesia (subset, diulang bila perlu)
+	kata_umum = [
+		"aku","kamu","kita","bos","imam","hari","ini","besok","kemarin","pagi","siang","sore","malam",
+		"kopi","teh","air","makan","minum","jalan","lari","baca","tulis","dengar","lihat","bekerja","belajar",
+		"python","termux","wiki","artikel","fakta","catatan","proyek","rencana","target","tujuan","langkah","cepat",
+		"emas","dolar","harga","naik","turun","trend","sinyal","analisis","risiko","aman","rapi","fokus","ringkas",
+		"cerita","puisi","parafrase","ringkasan","tanya","jawab","lanjut","mulai","selesai","siap","gas","lanjutkan",
+		"baik","bagus","mantap","hebat","mudah","cepat","pelan","tenang","santai","serius","nyaman","amanah","tepat",
+		"internet","lokal","alat","fitur","fungsi","skrip","bot","asisten","notifikasi","alarm","suara","teks","toast",
+	]
+	words = []
+	while len(words) < jumlah:
+		remain = jumlah - len(words)
+		batch = kata_umum if remain >= len(kata_umum) else kata_umum[:remain]
+		words.extend(batch)
+	# Gabungkan menjadi potongan-potongan agar tidak memenuhi memori (<= 200 fakta)
+	chunk = 80
+	added = 0
+	for i in range(0, len(words), chunk):
+		kalimat = " ".join(words[i:i+chunk]).strip() + "."
+		memory_add_fact(kalimat, tags=["seed"]) 
+		added += 1
+	return added
+
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
 	# Engine lokal saja (tanpa LLM)
@@ -1729,13 +1756,26 @@ if __name__ == "__main__":
 			perintah_jam()
 			continue
 
-		# Fallback: gunakan LLM jika aktif, jika tidak pakai generator konteks + kamus dinamis
+		elif pesan.startswith("tambahkan ") and " kata" in pesan:
+			try:
+				angka = int(pesan.split(" ", 1)[1].split(" kata")[0].strip())
+			except Exception:
+				angka = 1000
+			added_chunks = seed_kata_ke_memori(angka)
+			print(f"Yayat: Disisipkan ~{angka} kata ke memori (dalam {added_chunks} potongan).")
+			# retrain LM jika tersedia
+			if LOCAL_LM_AVAILABLE:
+				corpus = build_corpus_from_state(memory, context_window, log_context.get("wiki_session") or {})
+				model = LocalLM(n=3)
+				model.fit(corpus)
+				model.save()
+				LOCAL_LM_MODEL = model
+				print("Yayat: LM lokal dilatih ulang.")
+			continue
+
+		# Fallback: generator konteks + kamus dinamis
 		else:
-			teks_llm = generate_llm_reply_aware_context(user_input)
-			if teks_llm and teks_llm.strip():
-				teks = teks_llm.strip()
-			else:
-				teks = generate_response_from_context(user_input)
+			teks = generate_response_from_context(user_input)
 			yayat_suara(teks)
 			print("Yayat:", teks)
 			simpan_log("Yayat", teks)

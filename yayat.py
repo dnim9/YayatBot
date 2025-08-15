@@ -1323,6 +1323,103 @@ def tanya_wiki(pertanyaan: str) -> str:
 	return f"Jawaban dari bagian '{best.get('title')}'\n{snippet}"
 
 
+# --- Text utilities: summarization, paraphrase, generators ---
+STOPWORDS_ID = set([
+	"yang","dan","di","ke","dari","untuk","dengan","atau","pada","itu","ini","karena","agar","supaya","jika","ketika","bahwa","dalam","sebagai","adalah","ada","pun","saja","juga","sudah","belum","akan","telah","lebih","kurang","kita","kami","saya","aku","dia","mereka","yang","atau","serta","sehingga","namun","tapi","tetapi"
+])
+
+def split_sentences_id(text: str) -> list:
+	seps = ['.', '!', '?', '\n']
+	sents = []
+	buf = ''
+	for ch in text:
+		buf += ch
+		if ch in seps:
+			s = buf.strip()
+			if s:
+				sents.append(s)
+			buf = ''
+	if buf.strip():
+		sents.append(buf.strip())
+	return sents
+
+
+def summarize_text_id(text: str, max_sentences: int = 3) -> str:
+	sents = split_sentences_id(text)
+	if len(sents) <= max_sentences:
+		return text.strip()
+	# score by word frequency
+	from collections import Counter
+	words = []
+	for s in sents:
+		for w in _tokenize(s):
+			if w not in STOPWORDS_ID:
+				words.append(w)
+	freq = Counter(words)
+	if not freq:
+		return " ".join(sents[:max_sentences])
+	scores = []
+	for i, s in enumerate(sents):
+		score = sum(freq.get(w, 0) for w in _tokenize(s) if w not in STOPWORDS_ID)
+		scores.append((score, i, s))
+	top = sorted(scores, key=lambda x: (-x[0], x[1]))[:max_sentences]
+	top_sorted = [t[2] for t in sorted(top, key=lambda x: x[1])]
+	return " ".join(top_sorted)
+
+PARAPHRASE_MAP_ID = {
+	"karena": ["sebab"],
+	"namun": ["tetapi"],
+	"tapi": ["namun"],
+	"agar": ["supaya"],
+	"jika": ["apabila"],
+	"ketika": ["saat"],
+	"dengan": ["bersama"],
+	"untuk": ["guna"],
+	"membuat": ["menyusun"],
+	"menjadi": ["berubah menjadi"],
+}
+
+def paraphrase_simple_id(text: str) -> str:
+	import random
+	t = " " + normalize_text(text) + " "
+	for k, vs in PARAPHRASE_MAP_ID.items():
+		if f" {k} " in t:
+			repl = random.choice(vs)
+			t = t.replace(f" {k} ", f" {repl} ")
+	return t.strip()
+
+
+def generate_poem_id(theme: str) -> str:
+	import random
+	tema = theme.strip().title() or "Hari Ini"
+	templates = [
+		[
+			f"{tema} di pagi hari",
+			"Angin pelan menyapa hati",
+			"Langkah kecil tetap berani",
+			"Kita jalan lagi, tak perlu terburu-buru"
+		],
+		[
+			f"Tentang {tema} dan sunyi",
+			"Di sela hiruk pikuk kota ini",
+			"Kopi pahit jadi saksi",
+			"Bahwa semangatmu tak pernah pergi"
+		],
+	]
+	pil = random.choice(templates)
+	return "\n".join(pil)
+
+
+def generate_story_id(theme: str) -> str:
+	tema = theme.strip() or "perjalanan kecil"
+	return (
+		f"Pagi itu, {tema} datang tanpa rencana. Kita menyiapkan hal sederhana, lalu mengeksekusinya tahap demi tahap. "
+		"Setiap hambatan dicatat, setiap kemajuan dirayakan kecil-kecilan. "
+		"Menjelang sore, kita menengok kembali daftar tugas dan menyadari satu hal: konsistensi yang menang. "
+		"Malamnya, kita menutup hari dengan syukur, menyiapkan target besok, lalu istirahat."
+	)
+
+
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
 	# LLM dinonaktifkan (default OFF permanen)
@@ -1509,6 +1606,51 @@ if __name__ == "__main__":
 			print("Yayat:", teks)
 			simpan_log("Yayat", teks)
 			update_context("Yayat", teks)
+			continue
+		elif pesan.startswith("ringkas "):
+			konten = user_input.split(" ", 1)[1].strip()
+			if not konten:
+				print("Yayat: Teks kosong, Bos.")
+				continue
+			teks = summarize_text_id(konten, max_sentences=3)
+			print("Yayat:", teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
+			continue
+		elif pesan.startswith("parafrase ") or pesan.startswith("parafrasa "):
+			konten = user_input.split(" ", 1)[1].strip()
+			if not konten:
+				print("Yayat: Teks kosong, Bos.")
+				continue
+			teks = paraphrase_simple_id(konten)
+			print("Yayat:", teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
+			continue
+		elif pesan.startswith("puisi "):
+			tema = user_input.split(" ", 1)[1].strip()
+			teks = generate_poem_id(tema)
+			print("Yayat:\n" + teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
+			continue
+		elif pesan.startswith("cerita "):
+			tema = user_input.split(" ", 1)[1].strip()
+			teks = generate_story_id(tema)
+			print("Yayat:", teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
+			continue
+		elif pesan in ["mode formal", "mode casual", "mode santai"]:
+			memory["preferences"]["tone"] = "formal" if "formal" in pesan else "casual"
+			save_memory()
+			print(f"Yayat: Mode gaya diset ke {memory['preferences']['tone']}.")
+			continue
+		elif pesan.startswith("bahasa "):
+			lang = pesan.split(" ", 1)[1].strip()
+			memory["preferences"]["lang"] = lang
+			save_memory()
+			print(f"Yayat: Bahasa preferensi diset ke {lang}.")
 			continue
 
 		if pesan in ["keluar", "exit", "quit", "shut down system"]:

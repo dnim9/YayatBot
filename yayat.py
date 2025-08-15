@@ -570,6 +570,10 @@ def generate_response_from_context(user_input):
 			waktu = "malam"
 		return f"Selamat {waktu}, Bos Imam. Ada yang bisa Yayat bantu?"
 
+	# 0a. Panggilan singkat ke bot
+	if user_input_lower in ["yat", "yatt", "yo", "hey", "bos"]:
+		return "Siap, Bos. Ada yang bisa Yayat bantu?"
+
 	# 0b. Small talk sederhana
 	if any(phrase in user_input_lower for phrase in ["lagi apa", "ngapain", "ngapain nih", "sedang apa", "lagi ngapain"]):
 		return "Lagi standby siap bantu, Bos."
@@ -670,6 +674,10 @@ def generate_response_from_context(user_input):
 	key = f"imam: {user_input_lower}"
 	if key in reply:
 		return reply[key]
+
+	# 4a. Guard input terlalu pendek sebelum retrieval
+	if len(user_input_lower) <= 3:
+		return "Siap, Bos. Ada yang bisa Yayat bantu?"
 
 	# 4b. Retrieval dari memori sebelum minta ajar
 	hits = retrieve_from_memory(user_input_lower, top_k=3)

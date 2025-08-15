@@ -1440,37 +1440,12 @@ except Exception:
 LOCAL_LM_MODEL = None
 LOCAL_LM_MIN_CORPUS = 20
 
-def seed_kata_ke_memori(jumlah: int) -> int:
-	if jumlah <= 0:
-		return 0
-	# Kumpulan kata umum bahasa Indonesia (subset, diulang bila perlu)
-	kata_umum = [
-		"aku","kamu","kita","bos","imam","hari","ini","besok","kemarin","pagi","siang","sore","malam",
-		"kopi","teh","air","makan","minum","jalan","lari","baca","tulis","dengar","lihat","bekerja","belajar",
-		"python","termux","wiki","artikel","fakta","catatan","proyek","rencana","target","tujuan","langkah","cepat",
-		"emas","dolar","harga","naik","turun","trend","sinyal","analisis","risiko","aman","rapi","fokus","ringkas",
-		"cerita","puisi","parafrase","ringkasan","tanya","jawab","lanjut","mulai","selesai","siap","gas","lanjutkan",
-		"baik","bagus","mantap","hebat","mudah","cepat","pelan","tenang","santai","serius","nyaman","amanah","tepat",
-		"internet","lokal","alat","fitur","fungsi","skrip","bot","asisten","notifikasi","alarm","suara","teks","toast",
-	]
-	words = []
-	while len(words) < jumlah:
-		remain = jumlah - len(words)
-		batch = kata_umum if remain >= len(kata_umum) else kata_umum[:remain]
-		words.extend(batch)
-	# Gabungkan menjadi potongan-potongan agar tidak memenuhi memori (<= 200 fakta)
-	chunk = 80
-	added = 0
-	for i in range(0, len(words), chunk):
-		kalimat = " ".join(words[i:i+chunk]).strip() + "."
-		memory_add_fact(kalimat, tags=["seed"]) 
-		added += 1
-	return added
+# Hapus seeding kata; kita fokus ke kamus dinamis
 
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
 	# Engine lokal saja (tanpa LLM)
-
+	
 	load_log_context()
 	load_memory() # Load memory on startup
 	alarm_yayat.cek_alarm_background()
@@ -1529,6 +1504,112 @@ if __name__ == "__main__":
 			out = LOCAL_LM_MODEL.generate(prompt, max_tokens=40, temperature=0.9, top_k=8)
 			print("Yayat:", out if out else "(kosong)")
 			continue
+		elif pesan.startswith("kamus tambah "):
+			q = pesan.replace("kamus tambah", "").strip()
+			if ":" not in q:
+				print("Yayat: Format 'kamus tambah pertanyaan:jawaban'")
+				continue
+			pert, jaw = q.split(":", 1)
+			key = f"imam: {normalize_text(pert)}"
+			reply[key] = jaw.strip()
+			save_kamus()
+			print("Yayat: Kamus ditambah.")
+			continue
+		elif pesan == "kamus list":
+			print("Yayat: Daftar entri kamus (maks 20):")
+			cnt = 0
+			for k in list(reply.keys()):
+				print(f"- {k} -> {reply[k]}")
+				cnt += 1
+				if cnt >= 20:
+					break
+			continue
+		elif pesan.startswith("kamus hapus "):
+			k = f"imam: {pesan.replace('kamus hapus', '').strip()}"
+			if k in reply:
+				del reply[k]
+				save_kamus()
+				print("Yayat: Entri kamus dihapus.")
+			else:
+				print("Yayat: Entri tidak ditemukan.")
+			continue
+		elif pesan.startswith("kamus edit "):
+			nama = pesan.replace("kamus edit", "").strip()
+			k = f"imam: {nama}"
+			if k not in reply:
+				print("Yayat: Entri tidak ditemukan.")
+				continue
+			baru = input("Masukkan jawaban baru: ").strip()
+			reply[k] = baru
+			save_kamus()
+			print("Yayat: Entri kamus diperbarui.")
+			continue
+
+		if pesan in ["keluar", "exit", "quit", "shut down system"]:
+			pamit_options = [
+				"Sampai jumpa Bos Imam. Yayat standby. Jaga dirimu.",
+				"Bye Bos, jangan lupa istirahat. Yayat tetap standby!",
+				"Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.",
+				"Selamat istirahat Bos Imam, Yayat izin pamit.",
+				"Yayat keluar dulu ya Bos. Panggil aja kapan pun di butuhkan.",
+			]
+			pamit = random.choice(pamit_options)
+			yayat_suara(pamit)
+			print("Yayat:", pamit)
+			simpan_log("Yayat", pamit)
+			update_context("Yayat", pamit)
+			mimpi_yayat()
+			break
+
+		elif pesan == "edit":
+			edit_reply()
+			continue
+
+		elif pesan == "senyap":
+			mode_senyap = True
+			yayat_popup("Mode senyap aktif, Bos.")
+			print("Yayat: Mode senyap aktif.")
+			continue
+
+		elif pesan == "bersuara":
+			mode_senyap = False
+			yayat_popup("Mode suara aktif, Bos.")
+			print("Yayat: Mode suara aktif.")
+			continue
+
+		elif pesan.startswith("buka "):
+			buka_aplikasi(pesan[5:].strip())
+			continue
+
+		# Contoh utilitas waktu
+		elif "hari" in pesan or "tanggal" in pesan:
+			teks = waktu_sekarang()
+			yayat_suara(teks)
+			print("Yayat:", teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
+			continue
+		elif "jam" in pesan:
+			perintah_jam()
+			continue
+
+		elif pesan.startswith("tambahkan ") and " kata" in pesan:
+			try:
+				angka = int(pesan.split(" ", 1)[1].split(" kata")[0].strip())
+			except Exception:
+				angka = 1000
+			added_chunks = seed_kata_ke_memori(angka)
+			print(f"Yayat: Disisipkan ~{angka} kata ke memori (dalam {added_chunks} potongan).")
+			# retrain LM jika tersedia
+			if LOCAL_LM_AVAILABLE:
+				corpus = build_corpus_from_state(memory, context_window, log_context.get("wiki_session") or {})
+				model = LocalLM(n=3)
+				model.fit(corpus)
+				model.save()
+				LOCAL_LM_MODEL = model
+				print("Yayat: LM lokal dilatih ulang.")
+			continue
+
 		elif pesan.startswith("tambah alarm"):
 			waktu = pesan.replace("tambah alarm", "").strip()
 			print(alarm_yayat.tambah_alarm(waktu))
@@ -1647,21 +1728,6 @@ if __name__ == "__main__":
 				else:
 					print(f"- {h.get('speaker')}: {h.get('text')}")
 			continue
-		elif pesan.startswith("ringkas wiki"):
-			teks = ringkas_wiki()
-			yayat_suara(teks)
-			print("Yayat:", teks)
-			simpan_log("Yayat", teks)
-			update_context("Yayat", teks)
-			continue
-		elif pesan.startswith("tanya wiki "):
-			pertanyaan = pesan.replace("tanya wiki", "").strip()
-			teks = tanya_wiki(pertanyaan)
-			yayat_suara(teks)
-			print("Yayat:", teks)
-			simpan_log("Yayat", teks)
-			update_context("Yayat", teks)
-			continue
 		elif pesan.startswith("ringkas "):
 			konten = user_input.split(" ", 1)[1].strip()
 			if not konten:
@@ -1706,71 +1772,6 @@ if __name__ == "__main__":
 			memory["preferences"]["lang"] = lang
 			save_memory()
 			print(f"Yayat: Bahasa preferensi diset ke {lang}.")
-			continue
-
-		if pesan in ["keluar", "exit", "quit", "shut down system"]:
-			pamit_options = [
-				"Sampai jumpa Bos Imam. Yayat standby. Jaga dirimu.",
-				"Bye Bos, jangan lupa istirahat. Yayat tetap standby!",
-				"Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.",
-				"Selamat istirahat Bos Imam, Yayat izin pamit.",
-				"Yayat keluar dulu ya Bos. Panggil aja kapan pun di butuhkan.",
-			]
-			pamit = random.choice(pamit_options)
-			yayat_suara(pamit)
-			print("Yayat:", pamit)
-			simpan_log("Yayat", pamit)
-			update_context("Yayat", pamit)
-			mimpi_yayat()
-			break
-
-		elif pesan == "edit":
-			edit_reply()
-			continue
-
-		elif pesan == "senyap":
-			mode_senyap = True
-			yayat_popup("Mode senyap aktif, Bos.")
-			print("Yayat: Mode senyap aktif.")
-			continue
-
-		elif pesan == "bersuara":
-			mode_senyap = False
-			yayat_popup("Mode suara aktif, Bos.")
-			print("Yayat: Mode suara aktif.")
-			continue
-
-		elif pesan.startswith("buka "):
-			buka_aplikasi(pesan[5:].strip())
-			continue
-
-		# Contoh utilitas waktu
-		elif "hari" in pesan or "tanggal" in pesan:
-			teks = waktu_sekarang()
-			yayat_suara(teks)
-			print("Yayat:", teks)
-			simpan_log("Yayat", teks)
-			update_context("Yayat", teks)
-			continue
-		elif "jam" in pesan:
-			perintah_jam()
-			continue
-
-		elif pesan.startswith("tambahkan ") and " kata" in pesan:
-			try:
-				angka = int(pesan.split(" ", 1)[1].split(" kata")[0].strip())
-			except Exception:
-				angka = 1000
-			added_chunks = seed_kata_ke_memori(angka)
-			print(f"Yayat: Disisipkan ~{angka} kata ke memori (dalam {added_chunks} potongan).")
-			# retrain LM jika tersedia
-			if LOCAL_LM_AVAILABLE:
-				corpus = build_corpus_from_state(memory, context_window, log_context.get("wiki_session") or {})
-				model = LocalLM(n=3)
-				model.fit(corpus)
-				model.save()
-				LOCAL_LM_MODEL = model
-				print("Yayat: LM lokal dilatih ulang.")
 			continue
 
 		# Fallback: generator konteks + kamus dinamis

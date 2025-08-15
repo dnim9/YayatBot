@@ -1422,11 +1422,7 @@ def generate_story_id(theme: str) -> str:
 
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
-	# LLM dinonaktifkan (default OFF permanen)
-	USE_LLM_DEFAULT = False
-	llm_client = None
-	LLM_AVAILABLE = False
-	use_llm = False
+	# Engine lokal saja (tanpa LLM)
 
 	load_log_context()
 	load_memory() # Load memory on startup
@@ -1438,11 +1434,7 @@ if __name__ == "__main__":
 	print(
 		"Untuk alarm: 'tambah alarm HH:MM', 'daftar alarm', 'hapus alarm [nomor]'. Perintah memori: 'ingat ...', 'lupa ...', 'project set ...', 'memori?'\n"
 	)
-	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia. Mode LLM dinonaktifkan.\n")
-
-	def generate_llm_reply_aware_context(prompt_text: str) -> str:
-		# LLM dimatikan
-		return None
+	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia.\n")
 
 	while True:
 		user_input = input("Ketik atau tekan Enter untuk input suara: ").strip()
@@ -1459,22 +1451,7 @@ if __name__ == "__main__":
 		memory_push_message("Imam", user_input) # Push user input to memory
 
 		# --- Logika Perintah Khusus (lebih fleksibel) ---
-		if pesan in ["pintar on", "llm on", "mode pintar on"]:
-			print("Yayat: Mode LLM dinonaktifkan. Fokus ke small talk & follow-up lokal.")
-			continue
-		elif pesan in ["pintar off", "llm off", "mode pintar off"]:
-			print("Yayat: Mode LLM memang sudah off, Bos.")
-			continue
-		elif pesan in ["status", "pintar?", "llm?"]:
-			print("Yayat: LLM OFF. Menggunakan engine lokal untuk percakapan kontekstual.")
-			continue
-		elif pesan.startswith("set temp "):
-			print("Yayat: Pengaturan temperatur diabaikan karena LLM OFF.")
-			continue
-		elif pesan.startswith("set model "):
-			print("Yayat: Pengaturan model diabaikan karena LLM OFF.")
-			continue
-		elif pesan.startswith("tambah alarm"):
+		if pesan.startswith("tambah alarm"):
 			waktu = pesan.replace("tambah alarm", "").strip()
 			print(alarm_yayat.tambah_alarm(waktu))
 			continue

@@ -1,0 +1,40 @@
+{
+  "topik": null,
+  "terakhir": null,
+  "riwayat": [
+    {
+      "speaker": "Imam",
+      "text": "train lm",
+      "ts": "2025-08-15 20:41:22"
+    },
+    {
+      "speaker": "Imam",
+      "text": "coba lm halo bos",
+      "ts": "2025-08-15 20:41:22"
+    },
+    {
+      "speaker": "Imam",
+      "text": "keluar",
+      "ts": "2025-08-15 20:41:22"
+    },
+    {
+      "speaker": "Yayat",
+      "text": "Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.",
+      "ts": "2025-08-15 20:41:22"
+    }
+  ],
+  "topik_aktif": "Indonesia",
+  "wiki_url": "https://id.wikipedia.org/wiki/Indonesia",
+  "wiki_lang": "id",
+  "wiki_session": {
+    "title": "Indonesia",
+    "lang": "id",
+    "sections": [
+      {
+        "title": "Indonesia",
+        "text": "Indonesia, dengan nama resmi Republik Indonesia, adalah sebuah negara di Asia Tenggara dan Oseania, antara Samudra Hindia dan Samudra Pasifik. Indonesia merupakan negara lintas benua karena diapit oleh benua Asia dan Australia (Oseania). Selain itu, Indonesia juga menjadi wilayah pertemuan Samudra Pasifik dan Samudra Hindia, serta menjadi salah satu negara yang dilalui oleh khatulistiwa. Indonesia memiliki luas wilayah sebesar 1.904.569 km², sehingga menjadikannya sebagai negara terluas ke-14 dunia."
+      }
+    ],
+    "cursor": 0
+  }
+}

@@ -1811,15 +1811,25 @@ if __name__ == "__main__":
 			print(f"Yayat: Bahasa preferensi diset ke {lang}.")
 			continue
 
+		# --- Routing via modular pipeline ---
+		try:
+			from yayatbot.router import route as _route
+			status = _route(user_input)
+			if status == "exit":
+				break
+			if status == "handled":
+				continue
+		except Exception:
+			pass
+
 		# Fallback: generator konteks + kamus dinamis
-		else:
-			try:
-				from yayatbot.router import handle_fallback
-				handle_fallback(user_input)
-			except Exception:
-				teks = generate_response_from_context(user_input)
-				yayat_suara(teks)
-				print("Yayat:", teks)
-				simpan_log("Yayat", teks)
-				update_context("Yayat", teks)
-			continue
+		try:
+			from yayatbot.router import handle_fallback
+			handle_fallback(user_input)
+		except Exception:
+			teks = generate_response_from_context(user_input)
+			yayat_suara(teks)
+			print("Yayat:", teks)
+			simpan_log("Yayat", teks)
+			update_context("Yayat", teks)
+		continue

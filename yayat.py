@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
+"""
+YayatBot main loop (slim): input -> router -> fallback
+- Semua command ditangani di yayatbot.router
+- Fallback: generate_response_from_context + memori/kamus
+"""
 import json
 import os
 import random
 import datetime
 import time
-import sys  # Import pustaka sys untuk penanganan error
+import sys
 import urllib.parse
 import urllib.request
 import shutil
@@ -1581,22 +1586,6 @@ if __name__ == "__main__":
 			save_kamus()
 			print("Yayat: Entri kamus diperbarui.")
 			continue
-
-		if pesan in ["keluar", "exit", "quit", "shut down system"]:
-			pamit_options = [
-				"Sampai jumpa Bos Imam. Yayat standby. Jaga dirimu.",
-				"Bye Bos, jangan lupa istirahat. Yayat tetap standby!",
-				"Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.",
-				"Selamat istirahat Bos Imam, Yayat izin pamit.",
-				"Yayat keluar dulu ya Bos. Panggil aja kapan pun di butuhkan.",
-			]
-			pamit = random.choice(pamit_options)
-			yayat_suara(pamit)
-			print("Yayat:", pamit)
-			simpan_log("Yayat", pamit)
-			update_context("Yayat", pamit)
-			mimpi_yayat()
-			break
 
 		# Delegasikan ke router modular
 		try:

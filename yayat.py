@@ -432,6 +432,7 @@ def small_talk_response(user_input_lower: str) -> str:
 	# Return None if no match
 	jam = datetime.datetime.now().hour
 	waktu = "pagi" if 4 <= jam < 11 else ("siang" if jam < 15 else ("sore" if jam < 18 else "malam"))
+	project = memory.get("current_project")
 
 	def any_in(keys):
 		return any(k in user_input_lower for k in keys)
@@ -453,11 +454,29 @@ def small_talk_response(user_input_lower: str) -> str:
 		return random.choice(jokes)
 
 	# Kabar dan sapaan lanjutan
-	if any_in(["apa kabar", "gimana kabar", "gmn kabar", "gmna kabar", "kabarmu", "kabarnya"]):
+	if any_in(["apa kabar", "gimana kabar", "gmn kabar", "gmna kabar", "kabarmu", "kabarnya", "gm "]):
 		return random.choice([
 			f"Alhamdulillah baik, Bos Imam. Semoga {waktu} Bos juga lancar. Ada yang mau kita gas dulu?",
-			"Aman dan siap siaga, Bos Imam. Kita mulai dari trading, coding, atau santai ngobrol?",
+			f"Pagi cerah ya Bos." if waktu == "pagi" else "Aman dan siap siaga, Bos Imam. Kita mulai dari trading, coding, atau santai ngobrol?",
 		])
+
+	# Emosi/dukungan
+	if any_in(["sedih", "galau", "kecewa", "down"]):
+		return "Ikut ngerasain, Bos. Tarik napas pelan dulu, kita atur langkah kecil yang bisa dikerjakan sekarang."
+	if any_in(["marah", "kesal", "emosi"]):
+		return "Santai dulu ya Bos. Ambil jeda 1–2 menit, minum air, baru lanjut. Aku bantu susun langkahnya."
+	if any_in(["capek", "penat", "letih", "pusing", "sakit kepala", "migren", "punggung", "pundak"]):
+		return "Istirahat sebentar ya Bos. Peregangan ringan 2 menit bantu banget. Habis itu kita lanjut pelan-pelan."
+	if any_in(["tidur", "istirahat", "good night", "gn"]):
+		return "Selamat istirahat, Bos. Semoga tidurnya nyenyak. Besok kita lanjut lebih segar."
+
+	# Menu obrolan
+	if any_in(["menu", "bingung mau ngapain", "gimana enaknya", "ngapain ya"]):
+		memory_set_pending("choose_menu", {})
+		opsi = "1) trading, 2) coding, 3) bisnis, 4) santai"
+		if project:
+			return f"Kita bisa lanjut project: {project}, atau pilih {opsi}."
+		return f"Pilih jalurnya ya Bos: {opsi}."
 
 	# Makan/minum
 	if any_in(["sudah makan", "udah makan", "makan belum", "sdh makan", "suda makan", "mkn", "makan"]):
@@ -466,12 +485,16 @@ def small_talk_response(user_input_lower: str) -> str:
 			"Yayat ini bot jadi gak makan, Bos. Bos sendiri sudah makan?",
 			"Jangan lupa makan ya Bos. By the way, sudah makan belum?",
 		])
+	if any_in(["makan apa", "rekomendasi makan", "makan enak"]):
+		return "Kalau ringan: roti/fruit bowl. Kalau agak berat: nasi + lauk simpel. Pilih yang gak bikin ngantuk ya, Bos."
 	if any_in(["udah ngopi", "ngopi belum", "ngopi", "kopi"]):
 		memory_set_pending("ngopi_check", {})
 		return random.choice([
 			"Kalau ngopi, Yayat ikut semangatnya aja ☕. Bos udah ngopi?",
 			"Sip, kopi bikin fokus. Bos sudah ngopi belum?",
 		])
+	if any_in(["minum apa", "minum apa ya"]):
+		return "Air putih paling aman; kalau mau fokus: kopi/teh tapi jangan kebanyakan."
 
 	# Lokasi/keberadaan
 	if any_in(["lagi di mana", "lagi dimana", "dimana kamu", "di mana kamu", "posisi di mana", "posisi dimana"]):
@@ -484,14 +507,6 @@ def small_talk_response(user_input_lower: str) -> str:
 	if any_in(["santai dulu"]):
 		return random.choice([
 			"Boleh santai bentar. Habis itu kita lanjut yang penting-penting, setuju Bos?",
-		])
-
-	# Mood/emosi ringan
-	if any_in(["bosen", "bosan", "gabut", "jenuh", "blank"]):
-		memory_set_pending("choose_menu", {})
-		return random.choice([
-			"Kalau lagi jenuh, pilih: bahas trading ringan, ngoding simpel, atau cerita santai. Mau yang mana, Bos?",
-			"Biar gak jenuh, kita bisa bikin to-do kecil sekarang. Mau aku bantu susun 3 langkah cepat? (trading/coding/santai)",
 		])
 
 	# Cuaca
@@ -516,7 +531,12 @@ def small_talk_response(user_input_lower: str) -> str:
 	# Ketidakpastian
 	if any_in(["terserah", "bebas aja", "gimana ajalah", "apa aja deh", "ikut kamu aja", "ikut bos aja"]):
 		memory_set_pending("choose_menu", {})
-		return "Biar fokus, pilih ya Bos: trading, coding, bisnis, atau santai ngobrol."
+		opsi = "1) trading, 2) coding, 3) bisnis, 4) santai"
+		return f"Biar fokus, pilih ya Bos: {opsi}."
+
+	# Musik/hiburan
+	if any_in(["musik", "lagu", "nyanyi"]):
+		return "Andai bisa muter lagu, aku puterin yang santai. Sambil ngeteh, lanjut bahas apa, Bos?"
 
 	# Pantun/jokes/tebak-tebakan
 	if any_in(["pantun", "bikin pantun", "pantun dong"]):
@@ -545,6 +565,10 @@ def small_talk_response(user_input_lower: str) -> str:
 	# Penutup ringan
 	if any_in(["makasih", "terima kasih", "thanks banget"]):
 		return random.choice(["Sama-sama, Bos!", "Siap, kapan pun!", "Sama-sama, selalu siap bantu."])
+
+	# Tanggapan singkat afirmasi
+	if any_in(["siap", "gas", "oke", "ok", "mantap"]):
+		return random.choice(["Siap Bos!", "Gas!", "Oke, lanjut."])
 
 	return None
 
@@ -605,6 +629,19 @@ def generate_response_from_context(user_input):
 				# Not clear, ask again briefly
 				return "Maksudnya sudah atau belum, Bos?"
 		elif kind == "choose_menu":
+			# Accept numeric choices 1-4
+			if user_input_lower.strip() in ["1", "2", "3", "4"]:
+				choice = user_input_lower.strip()
+				memory_clear_pending()
+				if choice == "1":
+					return "Siap. Mau analisis XAU/USD, bahas setup, atau tanya indikator tertentu?"
+				if choice == "2":
+					return "Gas coding. Mau mulai dari apa, Bos: script Termux, bot trading, atau utilitas kecil?"
+				if choice == "3":
+					return "Oke. Bahas strategi bisnis kelapa/dropship atau optimasi operasional dulu?"
+				if choice == "4":
+					return "Santai juga perlu. Bos mau cerita apa?"
+			# Text choices
 			memory_clear_pending()
 			if any(w in user_input_lower for w in ["trading", "xau", "forex", "emas"]):
 				return "Siap. Mau analisis XAU/USD, bahas setup, atau tanya indikator tertentu?"
@@ -616,7 +653,7 @@ def generate_response_from_context(user_input):
 				return "Santai juga perlu. Bos mau cerita apa?"
 			# no clear choice
 			memory_set_pending("choose_menu", {})
-			return "Pilih ya Bos: trading, coding, bisnis, atau santai."
+			return "Pilih ya Bos (ketik angka): 1) trading, 2) coding, 3) bisnis, 4) santai."
 		elif kind == "todo_collect":
 			# parse comma-separated list
 			items = [i.strip() for i in user_input.split(",") if i.strip()]

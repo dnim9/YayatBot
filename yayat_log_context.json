@@ -4,53 +4,23 @@
   "riwayat": [
     {
       "speaker": "Imam",
-      "text": "ringkas Ini adalah teks panjang. Kalimat pertama penting. Kalimat kedua kurang penting. Kalimat ketiga juga penting untuk ringkasan.",
-      "ts": "2025-08-15 20:34:33"
-    },
-    {
-      "speaker": "Yayat",
-      "text": "Kalimat pertama penting. Kalimat kedua kurang penting. Kalimat ketiga juga penting untuk ringkasan.",
-      "ts": "2025-08-15 20:34:33"
+      "text": "train lm",
+      "ts": "2025-08-15 20:41:22"
     },
     {
       "speaker": "Imam",
-      "text": "parafrase namun agar jika",
-      "ts": "2025-08-15 20:34:33"
-    },
-    {
-      "speaker": "Yayat",
-      "text": "tetapi supaya apabila",
-      "ts": "2025-08-15 20:34:33"
-    },
-    {
-      "speaker": "Imam",
-      "text": "puisi kopi pagi",
-      "ts": "2025-08-15 20:34:33"
-    },
-    {
-      "speaker": "Yayat",
-      "text": "Kopi Pagi di pagi hari\nAngin pelan menyapa hati\nLangkah kecil tetap berani\nKita jalan lagi, tak perlu terburu-buru",
-      "ts": "2025-08-15 20:34:33"
-    },
-    {
-      "speaker": "Imam",
-      "text": "cerita perjalanan kecil",
-      "ts": "2025-08-15 20:34:33"
-    },
-    {
-      "speaker": "Yayat",
-      "text": "Pagi itu, perjalanan kecil datang tanpa rencana. Kita menyiapkan hal sederhana, lalu mengeksekusinya tahap demi tahap. Setiap hambatan dicatat, setiap kemajuan dirayakan kecil-kecilan. Menjelang sore, kita menengok kembali daftar tugas dan menyadari satu hal: konsistensi yang menang. Malamnya, kita menutup hari dengan syukur, menyiapkan target besok, lalu istirahat.",
-      "ts": "2025-08-15 20:34:33"
+      "text": "coba lm halo bos",
+      "ts": "2025-08-15 20:41:22"
     },
     {
       "speaker": "Imam",
       "text": "keluar",
-      "ts": "2025-08-15 20:34:33"
+      "ts": "2025-08-15 20:41:22"
     },
     {
       "speaker": "Yayat",
-      "text": "Selamat istirahat Bos Imam, Yayat izin pamit.",
-      "ts": "2025-08-15 20:34:33"
+      "text": "Oke Bos, sampai ketemu lagi. Yayat tunggu perintah selanjutnya.",
+      "ts": "2025-08-15 20:41:22"
     }
   ],
   "topik_aktif": "Indonesia",

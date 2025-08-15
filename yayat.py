@@ -1420,6 +1420,18 @@ def generate_story_id(theme: str) -> str:
 	)
 
 
+# --- Local LM integration ---
+try:
+	from local_lm import LocalLM, build_corpus_from_state
+	LOCAL_LM_AVAILABLE = True
+except Exception:
+	LocalLM = None
+	build_corpus_from_state = None
+	LOCAL_LM_AVAILABLE = False
+
+LOCAL_LM_MODEL = None
+LOCAL_LM_MIN_CORPUS = 20
+
 # --- Bagian Utama Skrip ---
 if __name__ == "__main__":
 	# Engine lokal saja (tanpa LLM)
@@ -1436,6 +1448,18 @@ if __name__ == "__main__":
 	)
 	print("Baru: 'wiki <topik>' untuk ringkasan dari Wikipedia.\n")
 
+	# Auto-load or train local LM
+	if LOCAL_LM_AVAILABLE:
+		from local_lm import LocalLM as _LL, build_corpus_from_state as _BC
+		m = _LL.load()
+		if m is None:
+			corpus = _BC(memory, context_window, log_context.get("wiki_session") or {})
+			if len(" ".join(corpus).split()) >= LOCAL_LM_MIN_CORPUS:
+				m = _LL(n=3)
+				m.fit(corpus)
+				m.save()
+		LOCAL_LM_MODEL = m
+
 	while True:
 		user_input = input("Ketik atau tekan Enter untuk input suara: ").strip()
 		if not user_input:
@@ -1451,7 +1475,26 @@ if __name__ == "__main__":
 		memory_push_message("Imam", user_input) # Push user input to memory
 
 		# --- Logika Perintah Khusus (lebih fleksibel) ---
-		if pesan.startswith("tambah alarm"):
+		if pesan.startswith("train lm"):
+			if not LOCAL_LM_AVAILABLE:
+				print("Yayat: Modul LM lokal belum tersedia.")
+				continue
+			corpus = build_corpus_from_state(memory, context_window, log_context.get("wiki_session") or {})
+			model = LocalLM(n=3)
+			model.fit(corpus)
+			model.save()
+			LOCAL_LM_MODEL = model
+			print("Yayat: LM lokal sudah dilatih dari memori + sesi.")
+			continue
+		elif pesan.startswith("coba lm "):
+			if not (LOCAL_LM_AVAILABLE and LOCAL_LM_MODEL):
+				print("Yayat: LM lokal belum ada, jalankan 'train lm' dulu.")
+				continue
+			prompt = user_input.split(" ", 2)[2] if len(user_input.split(" ")) >= 3 else ""
+			out = LOCAL_LM_MODEL.generate(prompt, max_tokens=40, temperature=0.9, top_k=8)
+			print("Yayat:", out if out else "(kosong)")
+			continue
+		elif pesan.startswith("tambah alarm"):
 			waktu = pesan.replace("tambah alarm", "").strip()
 			print(alarm_yayat.tambah_alarm(waktu))
 			continue

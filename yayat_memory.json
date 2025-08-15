@@ -8,23 +8,8 @@
   ],
   "current_project": "trading XAU/USD harian",
   "preferences": {},
-  "last_seen": "2025-08-15 20:34:33",
+  "last_seen": "2025-08-15 20:41:22",
   "last_messages": [
-    {
-      "speaker": "Imam",
-      "text": "memori?",
-      "ts": "2025-08-14 04:17:35"
-    },
-    {
-      "speaker": "Imam",
-      "text": "apa itu EMA 50?",
-      "ts": "2025-08-14 04:17:35"
-    },
-    {
-      "speaker": "Imam",
-      "text": "set temp 0.9",
-      "ts": "2025-08-14 04:17:37"
-    },
     {
       "speaker": "Imam",
       "text": "status",
@@ -259,6 +244,21 @@
       "speaker": "Imam",
       "text": "keluar",
       "ts": "2025-08-15 20:34:33"
+    },
+    {
+      "speaker": "Imam",
+      "text": "train lm",
+      "ts": "2025-08-15 20:41:22"
+    },
+    {
+      "speaker": "Imam",
+      "text": "coba lm halo bos",
+      "ts": "2025-08-15 20:41:22"
+    },
+    {
+      "speaker": "Imam",
+      "text": "keluar",
+      "ts": "2025-08-15 20:41:22"
     }
   ],
   "pending": {
